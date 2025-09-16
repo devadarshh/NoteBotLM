@@ -38,12 +38,12 @@ export function UserMenu({ user }: UserMenuProps) {
         >
           <div className="flex items-center space-x-3 group-data-[collapsible=icon]:space-x-0">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.image || ""} alt={user.name || ""} />
+              <AvatarImage src={user.image ?? ""} alt={user.name ?? ""} />
               <AvatarFallback className="text-xs bg-gray-200 text-gray-700">{initials}</AvatarFallback>
             </Avatar>
             <div className="flex-1 text-left group-data-[collapsible=icon]:hidden">
               <div className="font-medium text-sm truncate text-gray-900">
-                {user.name || "User"}
+                {user.name ?? "User"}
               </div>
               <div className="text-xs text-gray-500 truncate">
                 {user.email}

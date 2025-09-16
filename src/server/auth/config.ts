@@ -33,8 +33,8 @@ declare module "next-auth" {
  */
 export const authConfig = {
   providers: [GoogleProvider({
-    clientId: env.GOOGLE_CLIENT_ID as string,
-    clientSecret: env.GOOGLE_CLIENT_SECRET as string,
+    clientId: env.GOOGLE_CLIENT_ID,
+    clientSecret: env.GOOGLE_CLIENT_SECRET,
   })],
   adapter: PrismaAdapter(db),
   pages: {
