@@ -15,8 +15,13 @@ import {
   ResizableHandle,
 } from "@/components/ui/resizable";
 import { Button } from "@/components/ui/button";
-import { PdfViewer } from "@/components/pdf/pdf-viewer";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import dynamic from "next/dynamic";
+
+const PdfViewer = dynamic(
+  () => import("@/components/pdf/pdf-viewer").then((mod) => mod.PdfViewer),
+  { ssr: false ,loading: () => <div>Loading...</div>}
+)
 
 interface ChatComponentProps {
   chatId?: string;

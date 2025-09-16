@@ -1,6 +1,6 @@
 "use client";
 
-import { PdfJs, Worker } from '@react-pdf-viewer/core';
+import { type PdfJs, Worker } from '@react-pdf-viewer/core';
 import { pageNavigationPlugin } from "@react-pdf-viewer/page-navigation";
 import { searchPlugin } from "@react-pdf-viewer/search";
 import { highlightPlugin } from "@react-pdf-viewer/highlight";
