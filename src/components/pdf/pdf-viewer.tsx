@@ -1,6 +1,6 @@
 "use client";
 
-import { PdfJs, Viewer, Worker } from '@react-pdf-viewer/core';
+import { PdfJs, Worker } from '@react-pdf-viewer/core';
 import { pageNavigationPlugin } from "@react-pdf-viewer/page-navigation";
 import { searchPlugin } from "@react-pdf-viewer/search";
 import { highlightPlugin } from "@react-pdf-viewer/highlight";
@@ -12,7 +12,12 @@ import '@react-pdf-viewer/page-navigation/lib/styles/index.css';
 import '@react-pdf-viewer/search/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import dynamic from "next/dynamic";
 
+const Viewer = dynamic(
+  () => import("@react-pdf-viewer/core").then((mod) => mod.Viewer),
+  { ssr: false }
+);
 
 interface PdfViewerProps {
   fileUrl?: string;
