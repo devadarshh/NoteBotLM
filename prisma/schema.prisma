@@ -49,6 +49,8 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+    chats         Chat[]
+    files         File[]
 }
 
 model VerificationToken {
@@ -57,4 +59,55 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+enum MessageRole {
+    USER
+    ASSISTANT
+}
+
+model Chat {
+    id        String    @id @default(cuid())
+    title     String?
+    userId    String
+    user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    messages  Message[]
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+}
+
+model Message {
+    id        String      @id @default(cuid())
+    content   String
+    role      MessageRole
+    chatId    String
+    chat      Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
+    createdAt DateTime    @default(now())
+    messageFiles MessageFile[]
+}
+
+model MessageFile {
+  id        String  @id @default(cuid())
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  fileId    String  @unique
+  file      File    @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, fileId])
+}
+
+
+model File {
+  id              String       @id @default(uuid())
+  userId          String
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileType        String
+  name            String
+  size            Int
+  supabaseFileId  String
+  supabasePath    String
+  metadata        Json?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  messageFile     MessageFile?
 }
