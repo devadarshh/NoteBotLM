@@ -5,6 +5,12 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    config.resolve.alias.canvas = false;
+    config.resolve.alias.encoding = false;
+    return config;
+  },
+};
 
 export default config;
