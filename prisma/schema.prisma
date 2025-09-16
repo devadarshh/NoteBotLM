@@ -84,6 +84,7 @@ model Message {
     chat      Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
     createdAt DateTime    @default(now())
     messageFiles MessageFile[]
+    messageSources MessageSource[]
 }
 
 model MessageFile {
@@ -94,6 +95,15 @@ model MessageFile {
   file      File    @relation(fields: [fileId], references: [id], onDelete: Cascade)
 
   @@unique([messageId, fileId])
+}
+
+model MessageSource {
+    id        String  @id @default(cuid())
+    messageId String
+    message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+    
+    fileId    String
+    file      File    @relation(fields: [fileId], references: [id], onDelete: Cascade)
 }
 
 
@@ -110,4 +120,5 @@ model File {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   messageFile     MessageFile?
+  messageSources   MessageSource[]
 }

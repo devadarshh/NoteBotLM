@@ -61,6 +61,16 @@ export const chatRouter = createTRPCRouter({
               content: true,
               role: true,
               createdAt: true,
+              messageFiles:{
+                include:{
+                  file:true
+                }
+              },
+              messageSources:{
+                include:{
+                  file:true
+                }
+              },
             },
           },
         },
@@ -69,24 +79,7 @@ export const chatRouter = createTRPCRouter({
       if (!chat) {
         throw new Error('Chat not found');
       }
-
-      // Transform messages to match frontend interface
-      const messages = chat.messages.map((message) => ({
-        id: message.id,
-        role: message.role === 'USER' ? 'user' as const : 'assistant' as const,
-        content: message.content,
-        createdAt: message.createdAt,
-      }));
-
-      return {
-        chat: {
-          id: chat.id,
-          title: chat.title,
-          createdAt: chat.createdAt,
-          updatedAt: chat.updatedAt,
-        },
-        messages,
-      };
+      return chat;
     }),
 
   delete: protectedProcedure
