@@ -59,7 +59,7 @@ const uploadSchema = z.object({
 const querySchema = z.object({
   prompt: z.string(),
   chatId: z.string().optional(),
-  pdfIds: z.array(z.string()),
+  pdfIds: z.array(z.number()),
 });
 
 // ----------------- POST Route -----------------
@@ -187,58 +187,60 @@ export async function POST(req: NextRequest) {
 `;
 
       // 6️⃣ Stream LLM response
-    const stream = createUIMessageStream({
-  execute: async ({ writer }) => {
-    // Filter out chunks with missing PDF or fileId before creating contextText
-    const validChunks = scoredChunks.filter(c => c.pdf?.fileId);
-    
-    // Check again to make sure there are chunks to use as context
-    if (validChunks.length === 0) {
-      writer.append("I don't have enough information to answer that based on the provided PDFs.");
-      return;
-    }
+      const stream = createUIMessageStream({
+        execute: async ({ writer }) => {
+          // Filter out chunks with missing PDF or fileId before creating contextText
+          const validChunks = scoredChunks.filter((c) => c.pdf?.fileId);
 
-    const contextText = validChunks
-      .map(
-        (c, idx) =>
-          `<citation source-id="${idx + 1}" file-page-number="${c.page}" file-id="${c.pdf!.fileId}" cited-text="${safeText(c.text)}">[${idx + 1}]</citation>`
-      )
-      .join("\n\n");
+          // Check again to make sure there are chunks to use as context
+          if (validChunks.length === 0) {
+            writer.append(
+              "I don't have enough information to answer that based on the provided PDFs.",
+            );
+            return;
+          }
 
-    const model = google("models/gemini-2.5-flash");
-    const result = streamText({
-      model,
-      messages: [
-        {
-          role: "system",
-          content: `${systemPrompt}\n\nContext:\n${contextText}`,
-        },
-        { role: "user", content: prompt },
-      ],
-      temperature: 0.7,
-      experimental_transform: smoothStream(),
-    });
+          const contextText = validChunks
+            .map(
+              (c, idx) =>
+                `<citation source-id="${idx + 1}" file-page-number="${c.page}" file-id="${c.pdf!.fileId}" cited-text="${safeText(c.text)}">[${idx + 1}]</citation>`,
+            )
+            .join("\n\n");
 
-    writer.merge(result.toUIMessageStream());
-    const fullText = await result.text;
+          const model = google("models/gemini-2.5-flash");
+          const result = streamText({
+            model,
+            messages: [
+              {
+                role: "system",
+                content: `${systemPrompt}\n\nContext:\n${contextText}`,
+              },
+              { role: "user", content: prompt },
+            ],
+            temperature: 0.7,
+            experimental_transform: smoothStream(),
+          });
 
-    // 7️⃣ Save assistant message + correct messageSources
-    if (fullText) {
-      await db.message.create({
-        data: {
-          chatId: currentChatId,
-          role: "ASSISTANT",
-          content: fullText,
-          messageSources: {
-            createMany: {
-              data: validChunks.map((c) => ({ fileId: c.pdf!.fileId })),
-            },
-          },
+          writer.merge(result.toUIMessageStream());
+          const fullText = await result.text;
+
+          // 7️⃣ Save assistant message + correct messageSources
+          if (fullText) {
+            await db.message.create({
+              data: {
+                chatId: currentChatId,
+                role: "ASSISTANT",
+                content: fullText,
+                messageSources: {
+                  createMany: {
+                    data: validChunks.map((c) => ({ fileId: c.pdf!.fileId })),
+                  },
+                },
+              },
+            });
+          }
         },
       });
-    }
-  },
-});
       return createUIMessageStreamResponse({ stream });
     }
 
