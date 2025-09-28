@@ -1,4 +1,8 @@
-import { google } from "@ai-sdk/google";
+export const runtime = "nodejs";
+
+import { HfInference } from "@huggingface/inference";
+import { getDocument } from "pdfjs-dist/legacy/build/pdf.js";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import {
   createUIMessageStream,
   createUIMessageStreamResponse,
@@ -7,65 +11,64 @@ import {
 } from "ai";
 import { NextRequest } from "next/server";
 import { z } from "zod";
+import { createClient } from "@supabase/supabase-js";
+import path from "path";
 
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
-import { env } from "@/env";
-import { supabase } from "@/lib/supabase";
+import { google } from "@ai-sdk/google";
 
-const PROMPT = `
-### IMPERATIVE:  
-Analyze the following QUESTION with absolute precision. Your analysis must meet the highest standards of Research.  
+// Initialize Hugging Face client
+const hf = new HfInference(process.env.HUGGINGFACE_API_KEY!);
 
-## CITATION RULES (STRICTLY APPLY):  
-- Source-Citations:  
-  <citation source-id="[ID]" file-page-number="[Page Number]" file-id="[File ID]" cited-text="[Exact Text]">[ID]</citation>  
-- Always apply all three citation types simultaneously for every reference to a legal source, statutory provision, or company name.  
-- Example citation: <citation source-id="1" file-page-number="1" file-id="e5232b9a" cited-text="[Exact Text]">[1]</citation>  
-## MANDATORY ANALYSIS CRITERIA:  
-- Exclusively rely on the provided files  
-- Fully account for the chat history to ensure contextual continuity  
+// ------------------ PDF Extractor ------------------
+async function extractTextFromPDF(buffer: Buffer) {
+  const uint8Array = new Uint8Array(buffer);
+  const pdf = await getDocument({
+    data: uint8Array,
+    standardFontDataUrl: path.join(
+      process.cwd(),
+      "node_modules/pdfjs-dist/standard_fonts",
+    ),
+  }).promise;
 
-If the facts are complete and the sources sufficient, answer the question without reservations or disclaimers.  
-`;
+  let fullText = "";
+  const maxPages = Math.min(pdf.numPages, 100);
 
+  for (let i = 1; i <= maxPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items
+      .map((item: any) => item.str || "")
+      .join(" ")
+      .replace(/\s+/g, " ");
+    fullText += pageText + "\n";
+  }
+
+  return fullText;
+}
+
+// ------------------ Zod Schema ------------------
 const requestSchema = z.object({
   message: z.string(),
   chatId: z.string().optional(),
   fileIds: z.array(z.string()).optional(),
 });
 
+// ------------------ POST Route ------------------
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-
-    if (!session?.user?.id) {
+    if (!session?.user?.id)
       return new Response("Unauthorized", { status: 401 });
-    }
 
-    const body = (await req.json()) as unknown;
-
-    console.log("abhijeet body", body);
+    const body = await req.json();
     const { message, chatId, fileIds } = requestSchema.parse(body);
 
     let currentChatId = chatId;
-    let messageHistory: Array<{ role: "user" | "assistant"; content: string }> =
-      [];
 
-    // If chatId exists, load message history from database
-    if (currentChatId) {
-      const existingMessages = await db.message.findMany({
-        where: { chatId: currentChatId },
-        orderBy: { createdAt: "asc" },
-        select: { role: true, content: true },
-      });
-
-      messageHistory = existingMessages.map((msg) => ({
-        role: msg.role === "USER" ? ("user" as const) : ("assistant" as const),
-        content: msg.content,
-      }));
-    } else {
-      // Create new chat for first message
+    // Create new chat if necessary
+    if (!currentChatId) {
       const chat = await db.chat.create({
         data: {
           userId: session.user.id,
@@ -74,120 +77,105 @@ export async function POST(req: NextRequest) {
       });
       currentChatId = chat.id;
     }
-    // Save user message to database
+
+    // Fetch files from DB
+    const dbFiles = await db.file.findMany({
+      where: { id: { in: fileIds }, userId: session.user.id },
+    });
+
+    // Supabase client
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    );
+
+    const processedFiles: any[] = [];
+
+    for (const file of dbFiles) {
+      const { data, error } = await supabaseAdmin.storage
+        .from("files")
+        .download(file.supabasePath);
+      if (error || !data) continue;
+
+      const buffer = Buffer.from(await data.arrayBuffer());
+      const extractedText = await extractTextFromPDF(buffer);
+
+      if (!extractedText) continue;
+
+      // Split into chunks
+      const splitter = new RecursiveCharacterTextSplitter({
+        chunkSize: 1000,
+        chunkOverlap: 200,
+      });
+      const chunks = await splitter.splitText(extractedText);
+
+      // Create PDF record
+      const pdfRecord = await db.pdf.create({
+        data: {
+          name: file.name,
+          filePath: file.supabasePath,
+          fileId: file.id,
+        },
+      });
+
+      // Create embeddings and save chunks
+      for (let i = 0; i < chunks.length; i++) {
+        const chunkText = chunks[i];
+
+        const embeddingResponse = await hf.featureExtraction({
+          model: "sentence-transformers/all-MiniLM-L6-v2",
+          inputs: chunkText,
+        });
+
+        // Convert HF output to plain number[]
+        let embedding: number[] = [];
+        if (Array.isArray(embeddingResponse)) {
+          if (Array.isArray(embeddingResponse[0])) {
+            embedding = (embeddingResponse as number[][])[0];
+          } else {
+            embedding = embeddingResponse as number[];
+          }
+        }
+
+        await db.chunk.create({
+          data: {
+            pdfId: pdfRecord.id,
+            page: i + 1,
+            text: chunkText,
+            embedding,
+          },
+        });
+      }
+
+      processedFiles.push(file);
+    }
+
+    // Create user message
     await db.message.create({
       data: {
         chatId: currentChatId,
         role: "USER",
         content: message,
         messageFiles: {
-          createMany: {
-            data:
-              fileIds?.map((fileId) => ({
-                fileId,
-              })) ?? [],
-          },
+          createMany: { data: processedFiles.map((f) => ({ fileId: f.id })) },
         },
       },
     });
-    const dbFiles = await db.file.findMany({
-      where: { id: { in: fileIds }, userId: session.user.id },
-    });
 
-    const files = (
-      await Promise.all(
-        dbFiles.map(async (file) => {
-          const { data, error } = await supabase.storage
-            .from("files")
-            .download(file.supabasePath);
-          console.log("error", error);
-          console.log("data", data);
-          if (data && !error) {
-            return {
-              id: file.id,
-              name: file.name,
-              filename: file.name,
-              type: file.fileType,
-              buffer: await data.arrayBuffer(),
-              url: file.supabasePath,
-            };
-          }
-          return null;
-        }),
-      )
-    )
-      .filter(
-        (
-          f,
-        ): f is {
-          id: string;
-          name: string;
-          filename: string;
-          type: string;
-          buffer: ArrayBuffer;
-          url: string;
-        } => f !== null,
-      )
-      .sort((a, b) => a.id.localeCompare(b.id));
-
+    // Stream AI response
     const stream = createUIMessageStream({
       execute: async ({ writer }) => {
-        // Initialize Gemini model
-        const model = google("gemini-2.5-flash");
+        const model = google("models/gemini-2.5-flash");
 
-        const userPrompt =
-          messageHistory
-            .map((msg) => {
-              return `${msg.role}: ${msg.content}`;
-            })
-            .join("\n") +
-          "\n\n" +
-          files
-            .map((file, idx) => {
-              return `<file source-id=[${idx + 1}] file-id=[${file.id}] name=[${file?.name}]></file>`;
-            })
-            .join("\n") +
-          "\n\n";
-
-        console.log("\n\n User prompt \n\n", userPrompt);
-        console.log("\n\n db files \n\n ", dbFiles);
-        console.log("\n\n Files \n\n", files);
-
-        // Stream response from Gemini
         const result = streamText({
           model,
-          messages: [
-            { role: "system", content: PROMPT },
-            {
-              role: "user",
-              content: [
-                { type: "text", text: userPrompt },
-                ...files.map((file) => ({
-                  type: "file" as const,
-                  data: file.buffer,
-                  mediaType: "application/pdf" as const,
-                  filename: file.filename,
-                })),
-              ],
-            },
-          ],
+          messages: [{ role: "system", content: message }],
           temperature: 0.7,
           experimental_transform: smoothStream(),
-          onFinish: (e) => {
-            console.log("finished streaming");
-          },
         });
 
         writer.merge(result.toUIMessageStream());
         const fullText = await result.text;
-        console.log("abhijeet fullText", fullText);
-        writer.write({
-          type: "data-chatId",
-          data: {
-            chatId: currentChatId,
-          },
-          transient: true,
-        });
 
         if (fullText) {
           await db.message.create({
@@ -197,11 +185,7 @@ export async function POST(req: NextRequest) {
               content: fullText,
               messageSources: {
                 createMany: {
-                  data: files.map((f) => {
-                    return {
-                      fileId: f.id,
-                    };
-                  }),
+                  data: processedFiles.map((f) => ({ fileId: f.id })),
                 },
               },
             },

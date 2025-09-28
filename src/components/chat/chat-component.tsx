@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, FileText } from "lucide-react";
+import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import { ChatInput } from "./chat-input";
@@ -15,13 +15,17 @@ import {
   ResizableHandle,
 } from "@/components/ui/resizable";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import dynamic from "next/dynamic";
 
 const PdfViewer = dynamic(
   () => import("@/components/pdf/pdf-viewer").then((mod) => mod.PdfViewer),
-  { ssr: false ,loading: () => <div>Loading...</div>}
-)
+  { ssr: false, loading: () => <div>Loading...</div> },
+);
 
 interface ChatComponentProps {
   chatId?: string;
@@ -44,12 +48,19 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
     { id: chatId! },
     { enabled: !!chatId },
   );
+  console.log("[ChatComponent][DEBUG] chatId:", chatId);
+  console.log("[ChatComponent][DEBUG] chatData:", chatData);
 
   useEffect(() => {
+    console.log(
+      "[ChatComponent][DEBUG] useEffect chatData?.messages:",
+      chatData?.messages,
+    );
     if (chatData?.messages) {
       const uiMessages: UIMessage[] = chatData.messages.map((message) => ({
         id: message.id,
-        role: message.role === 'USER' ? 'user' as const : 'assistant' as const,
+        role:
+          message.role === "USER" ? ("user" as const) : ("assistant" as const),
         content: message.content,
         createdAt: message.createdAt,
         parts: [{ type: "text", text: message.content }],
@@ -63,6 +74,12 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
     transport: new DefaultChatTransport({
       api: "/api/chat",
       prepareSendMessagesRequest: ({ messages, id, body }) => {
+        console.log("[ChatComponent][DEBUG] prepareSendMessagesRequest:", {
+          messages,
+          id,
+          body,
+          chatId,
+        });
         return {
           body: {
             message: messages.at(-1)?.parts.find((part) => part.type === "text")
@@ -72,27 +89,30 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
           },
         };
       },
-      
+      onData: (data) => {
+        console.log("[FE] Received stream data:", data);
+        console.log("[ChatComponent][DEBUG] onData received:", data);
+        if (data.type === "data-chatId") {
+          const newChatId = (data.data as { chatId: string }).chatId;
+          console.log(`[FE] New chatId received: ${newChatId}. Redirecting...`);
+          utils.chat.getById
+            .prefetch({ id: newChatId })
+            .then(() => {
+              router.push(`/chat/${newChatId}`);
+            })
+            .catch((e) => {
+              console.log("[FE] Error in prefetch:", e);
+            });
+        }
+      },
     }),
-    onData: (data) => {
-      console.log("abhijeet data", data);
-
-      if(data.type === 'data-chatId'){
-        const chatId = (data.data as {chatId:string}).chatId
-        utils.chat.getById.prefetch({id:chatId}).then(()=>{
-          router.push(`/chat/${chatId}`)
-        }).catch((e)=>{
-          console.log("error in prefetch", e);
-        })
-      }
-    },
     onFinish: () => {
-      console.log("abhijeet onFinish");
+      console.log("[FE] Chat stream finished. Invalidating queries.");
       void utils.chat.getById.invalidate();
-
     },
   });
-
+  console.log("[ChatComponent][DEBUG] messages:", messages);
+  console.log("[ChatComponent][DEBUG] status:", status);
 
   const isLoading = status === "submitted" || status === "streaming";
 
@@ -109,28 +129,36 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
     fileId: string;
     sourceId: string;
   }) => {
-    // setShowPdfViewer(true);
-    console.log("abhijeet citedText", citedText);
-    console.log("abhijeet pageNumber", pageNumber);
-    console.log("abhijeet fileId", fileId);
-    console.log("abhijeet sourceId", sourceId);
-    const message = chatData?.messages.find((msg)=>msg.id===messageId)
-    const file = message?.messageSources[(+sourceId)-1] ?? message?.messageSources.find((file)=>file.fileId===fileId)
-    console.log("abhijeet message", message);
-    console.log("abhijeet file", file);
-    if(!message || !file){
+    console.log("[FE] Citation clicked! Data:", {
+      messageId,
+      citedText,
+      pageNumber,
+      fileId,
+      sourceId,
+    });
+
+    // Find the correct file URL from the message sources
+    const message = chatData?.messages.find((msg) => msg.id === messageId);
+    const file =
+      message?.messageSources[+sourceId - 1] ??
+      message?.messageSources.find((file) => file.fileId === fileId);
+
+    if (!message || !file) {
+      console.error("[FE] Could not find message or file for citation.");
       return;
     }
+
+    const fileUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/files/${file.file.supabasePath}`;
+    console.log(`[FE] Found file URL: ${fileUrl}`);
 
     setCitationData({
       citedText,
       pageNumber,
-      fileUrl: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/files/${file.file.supabasePath}`,
+      fileUrl,
       sourceId,
-    })
+    });
   };
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
@@ -141,24 +169,20 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
     messageText: string,
     fileIds?: string[],
   ) => {
+    console.log(
+      `[FE] User submitted message: "${messageText}" with file IDs: ${fileIds}`,
+    );
     if (!messageText.trim() || isLoading) return;
 
-    // Send message using AI SDK 5.0 API
     await sendMessage({ text: messageText }, { body: { fileIds } });
-
-    // Note: Chat ID management will be handled by the API route
-    // and should automatically redirect if needed
   };
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      {/* Main content area with resizable panels */}
-      <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
-        {/* Chat panel */}
+      <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
         <ResizablePanel defaultSize={citationData ? 60 : 100} minSize={40}>
           <div className="flex h-full min-h-0 flex-col">
-            {/* Chat Messages Area */}
-            <ScrollArea className="flex-1 min-h-0 p-4" ref={scrollAreaRef}>
+            <ScrollArea className="min-h-0 flex-1 p-4" ref={scrollAreaRef}>
               {messages.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center">
                   <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
@@ -193,13 +217,6 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                             : ""
                         }`}
                       >
-                        {/* <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                          {message.role === 'user' ? (
-                            <User className="w-4 h-4" />
-                          ) : (
-                            <Bot className="w-4 h-4" />
-                          )}
-                        </div> */}
                         <div
                           className={`rounded-lg px-4 py-2 ${
                             message.role === "user" ? "bg-muted" : ""
@@ -209,7 +226,6 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                             {message.parts
                               ?.filter((part) => part.type === "text")
                               .map((part, _index: number) => {
-                                // return part.text;
                                 return (
                                   <Streamdown
                                     components={{
@@ -236,7 +252,6 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                                                     rest["file-page-number"],
                                                   fileId: rest["file-id"],
                                                   sourceId: rest["source-id"],
-
                                                 })
                                               }
                                             >
@@ -264,12 +279,10 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
               )}
             </ScrollArea>
 
-            {/* Chat Input */}
             <ChatInput onSubmit={handleMessageSubmit} disabled={isLoading} />
           </div>
         </ResizablePanel>
 
-        {/* PDF Viewer panel */}
         {citationData && (
           <>
             <ResizableHandle withHandle />
