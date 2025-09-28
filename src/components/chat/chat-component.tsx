@@ -80,12 +80,15 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
           body,
           chatId,
         });
+        const lastMessage = messages
+          .at(-1)
+          ?.parts.find((p) => p.type === "text")?.text;
         return {
           body: {
-            message: messages.at(-1)?.parts.find((part) => part.type === "text")
-              ?.text,
             chatId,
-            ...body,
+            ...(body?.fileIds?.length
+              ? { message: lastMessage, fileIds: body.fileIds } // upload
+              : { prompt: lastMessage, pdfIds: body.fileIds ?? [] }), // query
           },
         };
       },
@@ -174,7 +177,15 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
     );
     if (!messageText.trim() || isLoading) return;
 
-    await sendMessage({ text: messageText }, { body: { fileIds } });
+    await sendMessage(
+      { text: messageText },
+      {
+        body:
+          fileIds && fileIds.length > 0
+            ? { prompt: messageText, pdfIds: fileIds, chatId } // always query when files exist
+            : { prompt: messageText, pdfIds: [], chatId }, // Query flow
+      },
+    );
   };
 
   return (
