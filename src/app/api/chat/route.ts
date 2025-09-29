@@ -21,10 +21,8 @@ import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import { google } from "@ai-sdk/google";
 
-// Hugging Face client
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY!);
 
-// ----------------- PDF Extractor -----------------
 async function extractTextFromPDF(buffer: Buffer) {
   const uint8Array = new Uint8Array(buffer);
   const pdf = await getDocument({
@@ -49,7 +47,6 @@ async function extractTextFromPDF(buffer: Buffer) {
   return fullText;
 }
 
-// ----------------- Zod Schemas -----------------
 const uploadSchema = z.object({
   message: z.string(),
   chatId: z.string().optional(),
@@ -62,7 +59,6 @@ const querySchema = z.object({
   pdfIds: z.array(z.number()),
 });
 
-// ----------------- POST Route -----------------
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
@@ -73,7 +69,6 @@ export async function POST(req: NextRequest) {
     const isQuery =
       typeof body.prompt === "string" && Array.isArray(body.pdfIds);
 
-    // ----------------- QUERY / RAG -----------------
     if (isQuery) {
       const { prompt, chatId, pdfIds } = querySchema.parse(body);
       let currentChatId = chatId;
@@ -85,7 +80,6 @@ export async function POST(req: NextRequest) {
         currentChatId = chat.id;
       }
 
-      // 1️⃣ Generate embedding for user prompt
       const embeddingResponse = await hf.featureExtraction({
         model: "sentence-transformers/all-MiniLM-L6-v2",
         inputs: prompt,
@@ -94,7 +88,6 @@ export async function POST(req: NextRequest) {
         ? (embeddingResponse as number[][])[0]
         : (embeddingResponse as number[]);
 
-      // 2️⃣ Fetch chunks with Pdf.fileId
       const allChunks = await db.chunk.findMany({
         where: { pdfId: { in: pdfIds } },
         select: {
@@ -137,13 +130,11 @@ export async function POST(req: NextRequest) {
 
       const scoredChunks = allChunks
         .map((c) => {
-          // Check if the embedding is valid before proceeding
           if (
             !c.embedding ||
             !Array.isArray(c.embedding) ||
             c.embedding.length === 0
           ) {
-            console.warn(`Skipping chunk ${c.id} due to invalid embedding.`);
             return { ...c, score: 0 };
           }
           return {
@@ -153,11 +144,6 @@ export async function POST(req: NextRequest) {
         })
         .sort((a, b) => b.score - a.score)
         .slice(0, 5);
-
-      // Log the top 5 chunks for debugging
-      console.log("Top 5 Scored Chunks:", scoredChunks);
-
-      // 4️⃣ Safe text helper
       const safeText = (s: string, max = 1200) =>
         s
           .replace(/\s+/g, " ")
@@ -172,7 +158,6 @@ export async function POST(req: NextRequest) {
         )
         .join("\n\n");
 
-      // 5️⃣ System prompt
       const systemPrompt = `
 ## CITATION RULES (STRICTLY APPLY):
 - Source-Citations:
@@ -186,13 +171,10 @@ export async function POST(req: NextRequest) {
 - If no relevant context, respond "I don't know."
 `;
 
-      // 6️⃣ Stream LLM response
       const stream = createUIMessageStream({
         execute: async ({ writer }) => {
-          // Filter out chunks with missing PDF or fileId before creating contextText
           const validChunks = scoredChunks.filter((c) => c.pdf?.fileId);
 
-          // Check again to make sure there are chunks to use as context
           if (validChunks.length === 0) {
             writer.append(
               "I don't have enough information to answer that based on the provided PDFs.",
@@ -224,7 +206,6 @@ export async function POST(req: NextRequest) {
           writer.merge(result.toUIMessageStream());
           const fullText = await result.text;
 
-          // 7️⃣ Save assistant message + correct messageSources
           if (fullText) {
             await db.message.create({
               data: {
@@ -244,7 +225,6 @@ export async function POST(req: NextRequest) {
       return createUIMessageStreamResponse({ stream });
     }
 
-    // ----------------- PDF UPLOAD -----------------
     const { message, chatId, fileIds } = uploadSchema.parse(body);
     let currentChatId = chatId;
 
