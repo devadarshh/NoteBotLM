@@ -42,7 +42,7 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
         <div className="mb-6 group-data-[collapsible=icon]:mb-4">
           <Button
             asChild
-            className="w-full justify-start gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm text-white transition-all group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 hover:bg-blue-700"
+            className="w-full justify-start gap-2 rounded-lg bg-blue-600 px-4 py-4 text-sm text-white transition-all group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 hover:bg-blue-700"
             size="sm"
           >
             <Link
@@ -62,7 +62,7 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
         </div>
       </SidebarContent>
 
-      <SidebarFooter className="border-sidebar-border border-t p-4 group-data-[collapsible=icon]:p-2">
+      <SidebarFooter className="border-sidebar-border border-t px-3 py-2 group-data-[collapsible=icon]:p-2">
         <div className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
           <UserMenu user={user} />
         </div>

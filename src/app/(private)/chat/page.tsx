@@ -6,7 +6,8 @@ export default function ChatPage() {
     <div className="flex h-screen flex-col">
       {/* Header with sidebar trigger */}
       <header className="flex h-16 items-center border-b px-4">
-        <SidebarTrigger />
+        <SidebarTrigger className="cursor-pointer" />
+
         <div className="ml-2">
           <h1 className="text-lg font-semibold">Chat</h1>
         </div>

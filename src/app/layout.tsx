@@ -4,6 +4,7 @@ import { type Metadata } from "next";
 import { Inter } from "next/font/google";
 
 import { TRPCReactProvider } from "@/trpc/react";
+import { AppToaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "Sage",
@@ -26,7 +27,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable}`}>
       <body>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        <TRPCReactProvider>
+          {children}
+          {/* Global toast portal (Sonner) */}
+          <AppToaster />
+        </TRPCReactProvider>
       </body>
     </html>
   );

@@ -45,6 +45,7 @@ docker-compose ps
 ```
 
 You should see:
+
 - `sage-valkey` running on port 6379
 - `sage-qdrant` running on ports 6333 (HTTP) and 6334 (gRPC)
 
@@ -114,12 +115,14 @@ The application should now be running at `http://localhost:3000`
 ## Docker Services
 
 ### Valkey (Redis)
+
 - **Port**: 6379
 - **Purpose**: Job queue for BullMQ (file processing)
 - **Data persistence**: `valkey_data` volume
 - **Health check**: `redis-cli ping`
 
 ### Qdrant
+
 - **Ports**: 6333 (HTTP/REST), 6334 (gRPC)
 - **Purpose**: Vector database for document embeddings
 - **Data persistence**: `qdrant_data` volume
@@ -190,6 +193,7 @@ src/
 ## Troubleshooting
 
 ### Docker containers won't start
+
 ```bash
 # Check if ports are already in use
 lsof -i :6379
@@ -200,12 +204,48 @@ docker-compose down -v
 docker-compose up -d
 ```
 
+## UI Feedback (Toasts)
+
+The project uses the [Sonner](https://sonner.emilkowal.ski/) library for toast notifications.
+
+Global setup is handled in `src/app/layout.tsx` by rendering `<AppToaster />` once. A small wrapper `useToast()` exists at `src/components/ui/use-toast.ts` to provide a simple API plus helpers (`success`, `error`, `info`, `warning`, `promise`).
+
+### Showing a toast
+
+```tsx
+import { useToast } from "@/components/ui/use-toast";
+
+function ExampleButton() {
+  const { toast, success } = useToast();
+  return (
+    <button
+      onClick={() =>
+        success("Uploaded", { description: "Your document is now processing." })
+      }
+    >
+      Notify
+    </button>
+  );
+}
+```
+
+You can also import the raw `toast` function directly:
+
+```tsx
+import { toast } from "sonner";
+toast.success("All good");
+```
+
+Default position is top-right with rich colors enabled. Adjust in `AppToaster` if needed.
+
 ### Worker not processing files
+
 - Ensure Valkey is running: `docker-compose ps`
 - Check worker logs for errors
 - Verify `REDIS_HOST` and `REDIS_PORT` in `.env`
 
 ### Qdrant connection errors
+
 - Verify Qdrant is running: `curl http://localhost:6333/healthz`
 - Check `QDRANT_URL` in `.env`
 - View Qdrant logs: `docker-compose logs qdrant`
@@ -220,6 +260,7 @@ docker-compose up -d
 ## Deployment
 
 For production deployment, ensure:
+
 1. Update Docker Compose for production (add resource limits, networks)
 2. Use managed Redis/Qdrant services or deploy containers with proper persistence
 3. Set up proper environment variables in your hosting platform

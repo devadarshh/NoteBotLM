@@ -75,9 +75,7 @@ function groupChatsByDate(
 
 export function ChatList() {
   const params = useParams();
-  console.log("Params is ", params);
   const currentChatId = params?.chatId as string | undefined;
-  console.log("Current chat id is ", currentChatId);
 
   const { data: chats, isLoading, error } = api.chat.list.useQuery();
 

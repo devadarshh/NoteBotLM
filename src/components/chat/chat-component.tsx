@@ -195,12 +195,12 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                   <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
                       <span className="text-primary-foreground text-sm font-bold">
-                        S
+                        C
                       </span>
                     </div>
                   </div>
                   <h2 className="mb-2 text-lg font-semibold">
-                    Welcome to Sage Chat
+                    Welcome to ChatDocs
                   </h2>
                   <p className="text-muted-foreground">
                     Start a conversation with your AI assistant

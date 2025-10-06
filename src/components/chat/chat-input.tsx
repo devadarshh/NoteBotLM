@@ -15,7 +15,12 @@ interface ChatInputProps {
   setUploadedFiles: Dispatch<SetStateAction<UploadedFile[]>>;
 }
 
-export function ChatInput({ onSubmit, disabled = false, uploadedFiles, setUploadedFiles }: ChatInputProps) {
+export function ChatInput({
+  onSubmit,
+  disabled = false,
+  uploadedFiles,
+  setUploadedFiles,
+}: ChatInputProps) {
   const [input, setInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,7 +84,9 @@ export function ChatInput({ onSubmit, disabled = false, uploadedFiles, setUpload
           }
         } catch (error) {
           console.error("Error uploading file", error);
-          setUploadedFiles((prev) => prev.filter((f) => f.id !== newFiles[index]?.id));
+          setUploadedFiles((prev) =>
+            prev.filter((f) => f.id !== newFiles[index]?.id),
+          );
         }
       },
     );
@@ -154,12 +161,12 @@ export function ChatInput({ onSubmit, disabled = false, uploadedFiles, setUpload
           </div>
         )}
         <form onSubmit={handleSubmit} className="relative">
-          <div className="bg-muted/50 flex items-center space-x-2 rounded-full border p-2">
+          <div className="bg-muted/50 flex items-center space-x-2 rounded-full border border-gray-200 p-2 transition-colors focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-200/60 hover:border-blue-300">
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="h-8 w-8 flex-shrink-0 cursor-pointer rounded-full"
+              className="relative h-8 w-8 flex-shrink-0 cursor-pointer rounded-full text-gray-700 transition-colors duration-150 hover:bg-blue-50 hover:ring-1 hover:ring-blue-200 focus-visible:ring-2 focus-visible:ring-blue-400/40 focus-visible:outline-none"
               disabled={disabled}
               onClick={handleFileSelect}
             >
@@ -189,7 +196,7 @@ export function ChatInput({ onSubmit, disabled = false, uploadedFiles, setUpload
                 type="submit"
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 cursor-pointer rounded-full"
+                className="relative h-8 w-8 cursor-pointer rounded-full text-gray-700 transition-colors duration-150 hover:bg-blue-50 hover:ring-1 hover:ring-blue-200 focus-visible:ring-2 focus-visible:ring-blue-400/40 focus-visible:outline-none disabled:opacity-50"
                 disabled={
                   disabled ||
                   !input.trim() ||

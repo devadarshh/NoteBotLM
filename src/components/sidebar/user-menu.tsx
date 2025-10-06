@@ -1,9 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { LogOut, Settings, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// import { useToast } from "@/components/ui/use-toast";
+// import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +25,8 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ user }: UserMenuProps) {
+  // Using direct sonner toast here to avoid wrapper type inference issues with strict lint rules
+
   const initials = user.name
     ? user.name
         .split(" ")
@@ -29,12 +35,25 @@ export function UserMenu({ user }: UserMenuProps) {
         .toUpperCase()
     : "U";
 
+  const comingSoon = (feature: string) => {
+    toast("Coming soon", {
+      description: `${feature} feature is not implemented yet.`,
+    });
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="h-auto w-full cursor-pointer justify-start rounded-lg p-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 hover:bg-gray-100"
+          className={cn(
+            "relative h-auto w-full justify-start py-2.5 pl-2 pr-7 text-left font-normal",
+            "rounded-md text-sm text-gray-700 transition-colors duration-150",
+            "hover:bg-blue-50 hover:ring-1 hover:ring-blue-200",
+            "data-[state=open]:bg-blue-50 data-[state=open]:text-gray-900 data-[state=open]:ring-1 data-[state=open]:ring-blue-200",
+            "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:pr-2",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/40",
+          )}
         >
           <div className="flex items-center space-x-3 group-data-[collapsible=icon]:space-x-0">
             <Avatar className="h-8 w-8">
@@ -47,25 +66,35 @@ export function UserMenu({ user }: UserMenuProps) {
               <div className="truncate text-sm font-medium text-gray-900">
                 {user.name ?? "User"}
               </div>
-              <div className="truncate text-xs text-gray-500">{user.email}</div>
+              <div className="truncate text-[11px] leading-snug text-gray-500">
+                {user.email}
+              </div>
             </div>
           </div>
         </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem asChild>
-          <Link href="/profile" className="flex cursor-pointer items-center">
-            <User className="mr-2 h-4 w-4" />
-            Profile
-          </Link>
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            comingSoon("Profile");
+          }}
+          className="cursor-pointer"
+        >
+          <User className="mr-2 h-4 w-4" />
+          Profile
         </DropdownMenuItem>
 
-        <DropdownMenuItem asChild>
-          <Link href="/settings" className="flex cursor-pointer items-center">
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
-          </Link>
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            comingSoon("Settings");
+          }}
+          className="cursor-pointer"
+        >
+          <Settings className="mr-2 h-4 w-4" />
+          Settings
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
