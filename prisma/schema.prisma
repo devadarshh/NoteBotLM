@@ -1,13 +1,16 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-
 generator client {
-  provider        = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
     provider = "postgresql"
+    // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
+    // Further reading:
+    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
+    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
     url      = env("DATABASE_URL")
     directUrl = env("DIRECT_URL")
 }
@@ -18,12 +21,12 @@ model Account {
     type                     String
     provider                 String
     providerAccountId        String
-    refresh_token            String? 
-    access_token             String? 
+    refresh_token            String? // @db.Text
+    access_token             String? // @db.Text
     expires_at               Int?
     token_type               String?
     scope                    String?
-    id_token                 String? 
+    id_token                 String? // @db.Text
     session_state            String?
     user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
     refresh_token_expires_in Int?
@@ -119,27 +122,4 @@ model File {
   updatedAt       DateTime     @updatedAt
   messageFile     MessageFile?
   messageSources   MessageSource[]
-  // New relationship to Pdf model
-  pdf             Pdf?
-}
-
-// New models for PDF and chunks
-model Pdf {
-  id        Int      @id @default(autoincrement())
-  name      String
-  filePath  String   // supabase path in bucket
-  chunks    Chunk[]
-  createdAt DateTime @default(now())
-  // New relationship to File model
-  file      File?    @relation(fields: [fileId], references: [id])
-  fileId    String?  @unique
-}
-
-model Chunk {
-    id        Int    @id @default(autoincrement())
-    pdfId     Int
-    page      Int
-    text      String   @db.Text
-    embedding Float[]
-    pdf       Pdf      @relation(fields: [pdfId], references: [id])
 }

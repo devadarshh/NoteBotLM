@@ -1,40 +1,33 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Plus, XIcon } from "lucide-react";
 import { api } from "@/trpc/react";
 import { fileToBase64 } from "@/lib/utils";
+import type { UploadedFile } from "@/components/chat/chat-component";
 
 interface ChatInputProps {
-  onSubmit: (message: string,fileIds?: string[]) => void;
+  onSubmit: (message: string) => void;
   disabled?: boolean;
+  uploadedFiles: UploadedFile[];
+  setUploadedFiles: Dispatch<SetStateAction<UploadedFile[]>>;
 }
 
-interface UploadFile {
-  id: string;
-  name: string;
-  type: string;
-  isUploading: boolean;
-}
-
-
-export function ChatInput({ onSubmit, disabled = false }: ChatInputProps) {
+export function ChatInput({ onSubmit, disabled = false, uploadedFiles, setUploadedFiles }: ChatInputProps) {
   const [input, setInput] = useState("");
-  const [files, setFiles] = useState<UploadFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const uploadfileMutation = api.chat.uploadFiles.useMutation();
-
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || disabled) return;
 
-    onSubmit(input.trim(),files.map((file) => file.id));
+    onSubmit(input.trim());
     setInput("");
-    setFiles([]);
+    // Don't clear files - they persist throughout the conversation
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -51,7 +44,7 @@ export function ChatInput({ onSubmit, disabled = false }: ChatInputProps) {
       isUploading: true,
     }));
 
-    setFiles((prev) => [...prev, ...newFiles]);
+    setUploadedFiles((prev) => [...prev, ...newFiles]);
 
     const uploadPromises = Array.from(selectedFiles).map(
       async (file, index) => {
@@ -71,7 +64,7 @@ export function ChatInput({ onSubmit, disabled = false }: ChatInputProps) {
           });
 
           if (uploadedFile?.id) {
-            setFiles((prev) =>
+            setUploadedFiles((prev) =>
               prev.map((f) => {
                 if (f.id === newFiles[index]?.id) {
                   return { ...f, id: uploadedFile.id, isUploading: false };
@@ -80,13 +73,13 @@ export function ChatInput({ onSubmit, disabled = false }: ChatInputProps) {
               }),
             );
           } else {
-            setFiles((prev) =>
+            setUploadedFiles((prev) =>
               prev.filter((f) => f.id !== newFiles[index]?.id),
             );
           }
         } catch (error) {
           console.error("Error uploading file", error);
-          setFiles((prev) => prev.filter((f) => f.id !== newFiles[index]?.id));
+          setUploadedFiles((prev) => prev.filter((f) => f.id !== newFiles[index]?.id));
         }
       },
     );
@@ -98,36 +91,38 @@ export function ChatInput({ onSubmit, disabled = false }: ChatInputProps) {
     fileInputRef.current?.click();
   };
 
-  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInputChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const selectedFiles = e.target.files;
     if (selectedFiles && selectedFiles.length > 0) {
       await handleFileUpload(selectedFiles);
       // Reset the input so the same file can be selected again
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
 
   const removeFile = (fileId: string) => {
-    setFiles((prev) => prev.filter((file) => file.id !== fileId));
+    setUploadedFiles((prev) => prev.filter((file) => file.id !== fileId));
   };
   return (
-    <div className="p-4 bg-background">
-      <div className="max-w-4xl mx-auto">
-        {files.length > 0 && (
+    <div className="bg-background p-4">
+      <div className="mx-auto max-w-4xl">
+        {uploadedFiles.length > 0 && (
           <div className="mb-4 flex flex-wrap gap-2">
-            {files.map((file) => (
+            {uploadedFiles.map((file) => (
               <div
                 key={file.id}
-                className="flex items-center space-x-3 bg-white rounded-2xl border border-gray-200 p-3 pr-8 relative shadow-sm"
+                className="relative flex items-center space-x-3 rounded-2xl border border-gray-200 bg-white p-3 pr-8 shadow-sm"
               >
-                <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500">
                   {file.isUploading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : (
                     <svg
-                      className="w-5 h-5 text-white"
+                      className="h-5 w-5 text-white"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -139,8 +134,8 @@ export function ChatInput({ onSubmit, disabled = false }: ChatInputProps) {
                     </svg>
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
+                <div className="min-w-0 flex-1">
+                  <p className="max-w-[200px] truncate text-sm font-medium text-gray-900">
                     {file.name}
                   </p>
                   <p className="text-xs text-gray-500">PDF</p>
@@ -149,7 +144,7 @@ export function ChatInput({ onSubmit, disabled = false }: ChatInputProps) {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute top-1 right-1 h-6 w-6 rounded-full hover:bg-gray-100 bg-white border border-gray-200"
+                  className="absolute top-1 right-1 h-6 w-6 rounded-full border border-gray-200 bg-white hover:bg-gray-100"
                   onClick={() => removeFile(file.id)}
                 >
                   <XIcon className="h-3 w-3 text-gray-600" />
@@ -159,12 +154,12 @@ export function ChatInput({ onSubmit, disabled = false }: ChatInputProps) {
           </div>
         )}
         <form onSubmit={handleSubmit} className="relative">
-          <div className="flex items-center space-x-2 bg-muted/50 rounded-full border p-2">
+          <div className="bg-muted/50 flex items-center space-x-2 rounded-full border p-2">
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-full flex-shrink-0"
+              className="h-8 w-8 flex-shrink-0 cursor-pointer rounded-full"
               disabled={disabled}
               onClick={handleFileSelect}
             >
@@ -186,16 +181,20 @@ export function ChatInput({ onSubmit, disabled = false }: ChatInputProps) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={disabled}
-              className="flex-1 border-0 bg-transparent placeholder:text-muted-foreground/70 focus-visible:ring-0 focus-visible:ring-offset-0 px-2"
+              className="placeholder:text-muted-foreground/70 flex-1 border-0 bg-transparent px-2 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
 
-            <div className="flex items-center space-x-1 flex-shrink-0">
+            <div className="flex flex-shrink-0 items-center space-x-1">
               <Button
                 type="submit"
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full"
-                disabled={disabled || !input.trim() || files.some((file) => file.isUploading)}
+                className="h-8 w-8 cursor-pointer rounded-full"
+                disabled={
+                  disabled ||
+                  !input.trim() ||
+                  uploadedFiles.some((file) => file.isUploading)
+                }
               >
                 <Send className="h-4 w-4" />
               </Button>

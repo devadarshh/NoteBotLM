@@ -6,7 +6,6 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { api } from "@/trpc/react"
-// Simple date formatting utility to avoid external dependencies
 function formatRelativeTime(date: Date): string {
   const now = new Date()
   const diffInMs = now.getTime() - date.getTime()
@@ -128,19 +127,21 @@ export function ChatList() {
                 asChild
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start h-auto px-3 py-2.5 text-left font-normal group-data-[collapsible=icon]:p-2",
+                  "w-full justify-start h-auto px-3 py-2.5 text-left font-normal group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8",
                   "hover:bg-gray-100 text-gray-700 text-sm rounded-lg",
                   currentChatId === chat.id && "bg-gray-200 hover:bg-gray-200"
                 )}
                 size="sm"
               >
                 <Link href={`/chat/${chat.id}`} className="block truncate">
-                  <div className="truncate">
+                  <div className="truncate group-data-[collapsible=icon]:hidden">
                     {chat.title ?? "New Chat"}
                   </div>
                   <div className="text-xs text-gray-500 mt-0.5 group-data-[collapsible=icon]:hidden">
                     {formatRelativeTime(new Date(chat.updatedAt))}
                   </div>
+                  {/* Show a dot indicator when collapsed */}
+                  <div className="group-data-[collapsible=icon]:block hidden w-2 h-2 bg-blue-600 rounded-full" />
                 </Link>
               </Button>
             ))}

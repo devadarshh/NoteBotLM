@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { Queue } from "bullmq";
 import { db } from "@/server/db";
 
 interface FileUploadResponse {
@@ -9,6 +10,13 @@ interface FileUploadResponse {
   path: string;
   url?: string;
 }
+
+const fileQueue = new Queue("file-upload-queue", {
+  connection: {
+    host: process.env.REDIS_HOST || "localhost",
+    port: parseInt(process.env.REDIS_PORT || "6379"),
+  },
+});
 export async function uploadToSupabase(
   file: File,
   userId: string,
@@ -44,6 +52,7 @@ export async function uploadToSupabase(
     },
   });
 
+  await fileQueue.add("file-ready", { fileId: dbFile.id });
   return {
     name: dbFile.name,
     size: dbFile.size,

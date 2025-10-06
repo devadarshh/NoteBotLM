@@ -13,6 +13,9 @@ import '@react-pdf-viewer/search/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import dynamic from "next/dynamic";
+import { usePdfFullText } from "@/hooks/use-pdf-full-text";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Viewer = dynamic(
   () => import("@react-pdf-viewer/core").then((mod) => mod.Viewer),
@@ -21,13 +24,17 @@ const Viewer = dynamic(
 
 interface PdfViewerProps {
   fileUrl?: string;
-  textToHighlight: string
-  initialPage?: number
+  textToHighlight: string;
+  initialPage?: number;
+  fileId?: string;
 }
 
-export function PdfViewer({ fileUrl,textToHighlight = "An artificial Intelligence",initialPage }: PdfViewerProps) {
+export function PdfViewer({ fileUrl, textToHighlight = "An artificial Intelligence", initialPage, fileId }: PdfViewerProps) {
   const [isLoadingDocument, setIsLoadingDocument] = useState(true);
+  const [activeTab, setActiveTab] = useState<'fulltext' | 'pdf'>('fulltext');
   const pdfUrl = fileUrl ?? process.env.NEXT_PUBLIC_SUPABASE_URL+"/storage/v1/object/public/files/1758031653771-we8l23-Patent_US8126832.pdf";
+  
+  const { data: fullTextData, loading: fullTextLoading, error: fullTextError } = usePdfFullText(fileId || null);
 
   const pdfRef = useRef<PdfJs.PdfDocument>(null);
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
@@ -77,16 +84,148 @@ export function PdfViewer({ fileUrl,textToHighlight = "An artificial Intelligenc
     void searchAndHighlight(textToHighlight);
   },[isLoadingDocument,textToHighlight])
 
+  const renderFormattedText = (text: string) => {
+    const lines = text.split('\n');
+    const elements: React.ReactNode[] = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line) continue;
+      
+      // Check if this is a page marker
+      const pageMarkerMatch = line.match(/^--- Page (\d+) ---$/);
+      if (pageMarkerMatch) {
+        const pageNum = pageMarkerMatch[1];
+        elements.push(
+          <div key={`page-${pageNum}-${i}`} className="my-8 flex items-center">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+            <div className="mx-4 flex items-center space-x-2 rounded-full bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+              </svg>
+              <span>Page {pageNum}</span>
+            </div>
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+          </div>
+        );
+        continue;
+      }
+      
+      // Skip empty lines after page markers
+      if (line.trim() === '' && elements.length > 0) {
+        continue;
+      }
+      
+      // Highlight the cited text if it exists in this line
+      if (textToHighlight && line.toLowerCase().includes(textToHighlight.toLowerCase())) {
+        const regex = new RegExp(`(${textToHighlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        const parts = line.split(regex);
+        
+        elements.push(
+          <p key={`line-${i}`} className="mb-2 leading-relaxed text-gray-800">
+            {parts.map((part, partIndex) => {
+              if (part.toLowerCase() === textToHighlight.toLowerCase()) {
+                return (
+                  <mark key={partIndex} className="bg-yellow-200 px-1 py-0.5 rounded animate-pulse">
+                    {part}
+                  </mark>
+                );
+              }
+              return part;
+            })}
+          </p>
+        );
+      } else if (line.trim() !== '') {
+        elements.push(
+          <p key={`line-${i}`} className="mb-2 leading-relaxed text-gray-800">
+            {line}
+          </p>
+        );
+      }
+    }
+    
+    return elements;
+  };
+
   return (
-    <div className="h-full w-full">
-      <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js`}>
-        <div className="h-full">
-          <Viewer onDocumentLoad={(e) => {
-            setIsLoadingDocument(false);
-            pdfRef.current = e.doc;
-          }} fileUrl={pdfUrl} plugins={[defaultLayoutPluginInstance,pageNavigationPluginInstance,searchPluginInstance,highlightPluginInstance]}/>
-        </div>
-      </Worker>
+    <div className="h-full w-full flex flex-col">
+      {/* Tab Navigation */}
+      <div className="flex border-b bg-gray-50">
+        <Button
+          variant={activeTab === 'fulltext' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setActiveTab('fulltext')}
+          className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500"
+        >
+          📄 Full Text
+        </Button>
+        <Button
+          variant={activeTab === 'pdf' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setActiveTab('pdf')}
+          className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500"
+        >
+          📋 PDF Viewer
+        </Button>
+      </div>
+
+      {/* Content Area */}
+      <div className="flex-1 overflow-hidden">
+        {activeTab === 'fulltext' ? (
+          <div className="h-full">
+            {fullTextLoading ? (
+              <div className="flex h-full items-center justify-center">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading document text...</p>
+                </div>
+              </div>
+            ) : fullTextError ? (
+              <div className="flex h-full items-center justify-center">
+                <div className="text-center text-red-600">
+                  <p className="mb-2">Failed to load document text</p>
+                  <p className="text-sm text-gray-500">{fullTextError}</p>
+                </div>
+              </div>
+            ) : fullTextData ? (
+              <ScrollArea className="h-full">
+                <div className="p-6 max-w-4xl mx-auto">
+                  <div className="mb-6">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                      {fullTextData.fileName}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {fullTextData.pageCount} pages
+                    </p>
+                  </div>
+                  <div className="prose prose-gray max-w-none">
+                    {renderFormattedText(fullTextData.fullText)}
+                  </div>
+                </div>
+              </ScrollArea>
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-gray-500">No document selected</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="h-full">
+            <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js`}>
+              <div className="h-full">
+                <Viewer 
+                  onDocumentLoad={(e) => {
+                    setIsLoadingDocument(false);
+                    pdfRef.current = e.doc;
+                  }} 
+                  fileUrl={pdfUrl} 
+                  plugins={[defaultLayoutPluginInstance, pageNavigationPluginInstance, searchPluginInstance, highlightPluginInstance]}
+                />
+              </div>
+            </Worker>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
