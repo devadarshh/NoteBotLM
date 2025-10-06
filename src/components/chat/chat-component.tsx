@@ -39,7 +39,6 @@ const XIcon = () => (
   </svg>
 );
 
-
 interface ChatComponentProps {
   chatId?: string;
 }
@@ -63,7 +62,9 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
   const router = useRouter();
   const [citationData, setCitationData] = useState<CitationData | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [lastSubmittedFiles, setLastSubmittedFiles] = useState<UploadedFile[]>([]);
+  const [lastSubmittedFiles, setLastSubmittedFiles] = useState<UploadedFile[]>(
+    [],
+  );
   const utils = api.useUtils();
 
   const { data: chatData } = api.chat.getById.useQuery(
@@ -74,7 +75,7 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
   const { messages, status, sendMessage, setMessages } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
-      prepareSendMessagesRequest: ({ messages, id, body }) => ({
+      prepareSendMessagesRequest: ({ messages, body }) => ({
         body: {
           message: messages.at(-1)?.parts.find((part) => part.type === "text")
             ?.text,
@@ -119,14 +120,17 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
 
   const isLoading = status === "submitted" || status === "streaming";
 
-  
   // Check if we have any assistant response content
   const lastMessage = messages[messages.length - 1];
-  const hasResponseContent = lastMessage?.role === "assistant" && 
-    lastMessage.parts?.some(part => part.type === "text" && part.text && part.text.length > 0);
-  
+  const hasResponseContent =
+    lastMessage?.role === "assistant" &&
+    lastMessage.parts?.some(
+      (part) => part.type === "text" && part.text && part.text.length > 0,
+    );
+
   // Show loading when submitted or streaming but no content yet
-  const isWaitingForResponse = (status === "submitted" || status === "streaming") && !hasResponseContent;
+  const isWaitingForResponse =
+    (status === "submitted" || status === "streaming") && !hasResponseContent;
 
   const handleCitationClick = ({
     messageId,
@@ -162,27 +166,22 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
     }
   }, [messages]);
 
-  const handleMessageSubmit = async (
-    messageText: string,
-  ) => {
+  const handleMessageSubmit = async (messageText: string) => {
     if (!messageText.trim() || isLoading) return;
 
     // Get all uploaded file IDs (excluding files that are still uploading)
     const fileIds = uploadedFiles
-      .filter(file => !file.isUploading)
-      .map(file => file.id);
+      .filter((file) => !file.isUploading)
+      .map((file) => file.id);
 
     // Store the files that are being submitted so they can be shown during loading
-    const filesToSubmit = uploadedFiles.filter(file => !file.isUploading);
+    const filesToSubmit = uploadedFiles.filter((file) => !file.isUploading);
     setLastSubmittedFiles(filesToSubmit);
 
     // Clear uploaded files immediately before sending
     setUploadedFiles([]);
 
-    await sendMessage(
-      { text: messageText },
-      { body: { fileIds } },
-    );
+    await sendMessage({ text: messageText }, { body: { fileIds } });
   };
 
   return (
@@ -212,16 +211,19 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                   {messages.map((message, index) => {
                     // Find the corresponding message data from chatData to get files
                     const messageData = chatData?.messages.find(
-                      (msg) => msg.id === message.id
+                      (msg) => msg.id === message.id,
                     );
-                    
+
                     // For new messages (not yet in DB), show files appropriately
                     const isNewMessage = !messageData;
-                    const isLastUserMessage = message.role === "user" && index === messages.length - 2;
+                    const isLastUserMessage =
+                      message.role === "user" && index === messages.length - 2;
                     const isLastMessage = index === messages.length - 1;
-                    
-                    let filesToDisplay: Array<{ file: { id: string; name: string } }> = [];
-                    
+
+                    let filesToDisplay: Array<{
+                      file: { id: string; name: string };
+                    }> = [];
+
                     if (messageData?.messageFiles) {
                       // Message from DB - use its associated files
                       filesToDisplay = messageData.messageFiles;
@@ -229,11 +231,13 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                       // For new user messages, show the submitted files during loading
                       // or current uploaded files if not loading
                       if (isLoading && lastSubmittedFiles.length > 0) {
-                        filesToDisplay = lastSubmittedFiles.map(f => ({ file: { id: f.id, name: f.name } }));
+                        filesToDisplay = lastSubmittedFiles.map((f) => ({
+                          file: { id: f.id, name: f.name },
+                        }));
                       } else if (!isLoading && uploadedFiles.length > 0) {
                         filesToDisplay = uploadedFiles
-                          .filter(f => !f.isUploading)
-                          .map(f => ({ file: { id: f.id, name: f.name } }));
+                          .filter((f) => !f.isUploading)
+                          .map((f) => ({ file: { id: f.id, name: f.name } }));
                       }
                     }
 
@@ -255,7 +259,9 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                         >
                           <div
                             className={`rounded-lg px-4 py-2 ${
-                              message.role === "user" ? "bg-muted" : "bg-gray-100"
+                              message.role === "user"
+                                ? "bg-muted"
+                                : "bg-gray-100"
                             }`}
                           >
                             {/* Display attached files */}
@@ -283,66 +289,68 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                                       <p className="max-w-[150px] truncate text-xs font-medium text-gray-900">
                                         {messageFile.file.name}
                                       </p>
-                                      <p className="text-xs text-gray-500">PDF</p>
+                                      <p className="text-xs text-gray-500">
+                                        PDF
+                                      </p>
                                     </div>
                                   </div>
                                 ))}
                               </div>
                             )}
                             <p className="whitespace-pre-wrap">
-                            {message.parts
-                              ?.filter((part) => part.type === "text")
-                              .map((part, _index) => (
-                                <Streamdown
-                                  rehypePlugins={[rehypeRaw]}
-                                  components={{
-                                    // @ts-expect-error dynamic props
-                                    citation: ({
-                                      children,
-                                      ...rest
-                                    }: {
-                                      children: React.ReactNode;
-                                      "cited-text": string;
-                                      "file-page-number": number;
-                                      "file-id": string;
-                                      "source-id": string;
-                                    }) => (
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <span
-                                            className="cursor-pointer font-bold text-blue-600"
-                                            onClick={() =>
-                                              handleCitationClick({
-                                                messageId: message.id,
-                                                citedText: rest["cited-text"],
-                                                pageNumber:
-                                                  rest["file-page-number"],
-                                                fileId: rest["file-id"],
-                                                sourceId: rest["source-id"],
-                                              })
-                                            }
-                                          >
-                                            {children}
-                                          </span>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>{rest["cited-text"]}</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    ),
-                                  }}
-                                  key={_index}
-                                >
-                                  {part.text}
-                                </Streamdown>
-                              ))}
+                              {message.parts
+                                ?.filter((part) => part.type === "text")
+                                .map((part, _index) => (
+                                  <Streamdown
+                                    rehypePlugins={[rehypeRaw]}
+                                    components={{
+                                      // @ts-expect-error dynamic props
+                                      citation: ({
+                                        children,
+                                        ...rest
+                                      }: {
+                                        children: React.ReactNode;
+                                        "cited-text": string;
+                                        "file-page-number": number;
+                                        "file-id": string;
+                                        "source-id": string;
+                                      }) => (
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <span
+                                              className="cursor-pointer font-bold text-blue-600"
+                                              onClick={() =>
+                                                handleCitationClick({
+                                                  messageId: message.id,
+                                                  citedText: rest["cited-text"],
+                                                  pageNumber:
+                                                    rest["file-page-number"],
+                                                  fileId: rest["file-id"],
+                                                  sourceId: rest["source-id"],
+                                                })
+                                              }
+                                            >
+                                              {children}
+                                            </span>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>{rest["cited-text"]}</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      ),
+                                    }}
+                                    key={_index}
+                                  >
+                                    {part.text}
+                                  </Streamdown>
+                                ))}
                             </p>
                           </div>
                         </div>
                       </div>
                     );
                   })}
-                  
+
                   {/* Loading indicator before response starts */}
                   {isWaitingForResponse && (
                     <div className="flex justify-start">
@@ -350,11 +358,22 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                         <div className="rounded-lg bg-gray-100 px-4 py-3">
                           <div className="flex items-center space-x-2">
                             <div className="flex space-x-1">
-                              <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '0ms' }}></div>
-                              <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '150ms' }}></div>
-                              <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '300ms' }}></div>
+                              <div
+                                className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+                                style={{ animationDelay: "0ms" }}
+                              ></div>
+                              <div
+                                className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+                                style={{ animationDelay: "150ms" }}
+                              ></div>
+                              <div
+                                className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+                                style={{ animationDelay: "300ms" }}
+                              ></div>
                             </div>
-                            <span className="text-sm text-gray-500">Thinking...</span>
+                            <span className="text-sm text-gray-500">
+                              Thinking...
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -364,8 +383,8 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
               )}
             </ScrollArea>
 
-            <ChatInput 
-              onSubmit={handleMessageSubmit} 
+            <ChatInput
+              onSubmit={handleMessageSubmit}
               disabled={isLoading}
               uploadedFiles={uploadedFiles}
               setUploadedFiles={setUploadedFiles}

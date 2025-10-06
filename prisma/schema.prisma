@@ -1,125 +1,116 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-    // Further reading:
-    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-    url      = env("DATABASE_URL")
-    directUrl = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
-// Necessary for Next auth
-model Account {
-    id                       String  @id @default(cuid())
-    userId                   String
-    type                     String
-    provider                 String
-    providerAccountId        String
-    refresh_token            String? // @db.Text
-    access_token             String? // @db.Text
-    expires_at               Int?
-    token_type               String?
-    scope                    String?
-    id_token                 String? // @db.Text
-    session_state            String?
-    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-    refresh_token_expires_in Int?
 
-    @@unique([provider, providerAccountId])
+model Account {
+  id                       String  @id @default(cuid())
+  userId                   String
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String?
+  access_token             String?
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String?
+  session_state            String?
+  refresh_token_expires_in Int?
+  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
 }
 
 model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
-    chats         Chat[]
-    files         File[]
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  image         String?
+  emailVerified DateTime?
+  accounts      Account[]
+  chats         Chat[]
+  files         File[]
+  sessions      Session[]
 }
 
 model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+  identifier String
+  token      String   @unique
+  expires    DateTime
 
-    @@unique([identifier, token])
-}
-
-enum MessageRole {
-    USER
-    ASSISTANT
+  @@unique([identifier, token])
 }
 
 model Chat {
-    id        String    @id @default(cuid())
-    title     String?
-    userId    String
-    user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-    messages  Message[]
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
+  id        String    @id @default(cuid())
+  title     String?
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  Message[]
 }
 
 model Message {
-    id        String      @id @default(cuid())
-    content   String
-    role      MessageRole
-    chatId    String
-    chat      Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
-    createdAt DateTime    @default(now())
-    messageFiles MessageFile[]
-    messageSources MessageSource[]
+  id             String          @id @default(cuid())
+  content        String
+  role           MessageRole
+  chatId         String
+  createdAt      DateTime        @default(now())
+  chat           Chat            @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  messageFiles   MessageFile[]
+  messageSources MessageSource[]
 }
 
 model MessageFile {
   id        String  @id @default(cuid())
   messageId String
-  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
   fileId    String  @unique
   file      File    @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@unique([messageId, fileId])
 }
 
 model MessageSource {
-    id        String  @id @default(cuid())
-    messageId String
-    message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-    
-    fileId    String
-    file      File    @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  messageId String
+  fileId    String
+  file      File    @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 }
 
-
 model File {
-  id              String       @id @default(uuid())
-  userId          String
-  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fileType        String
-  name            String
-  size            Int
-  supabaseFileId  String
-  supabasePath    String
-  metadata        Json?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  messageFile     MessageFile?
-  messageSources   MessageSource[]
+  id             String          @id @default(uuid())
+  userId         String
+  fileType       String
+  name           String
+  size           Int
+  supabaseFileId String
+  supabasePath   String
+  metadata       Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageFile    MessageFile?
+  messageSources MessageSource[]
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
 }
