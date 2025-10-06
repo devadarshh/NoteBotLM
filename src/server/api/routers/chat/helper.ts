@@ -13,10 +13,11 @@ interface FileUploadResponse {
 
 const fileQueue = new Queue("file-upload-queue", {
   connection: {
-    host: process.env.REDIS_HOST || "localhost",
-    port: parseInt(process.env.REDIS_PORT || "6379"),
+    host: process.env.REDIS_HOST,
+    port: parseInt(process.env.REDIS_PORT ?? "6379"),
   },
 });
+
 export async function uploadToSupabase(
   file: File,
   userId: string,

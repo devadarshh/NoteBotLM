@@ -13,7 +13,7 @@ interface FileJobData {
 
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 const qdrantClient = new QdrantClient({
-  url: process.env.QDRANT_URL || "http://localhost:6333",
+  url: process.env.QDRANT_URL ?? "http://localhost:6333",
 });
 
 const collectionName = "document-embeddings-hf";
@@ -80,7 +80,11 @@ const worker = new Worker<FileJobData>(
 
     console.log(`Generated ${embeddings.length} embeddings.`);
     const points = chunks.map((chunk, index) => {
-      const pageNumber = chunk.metadata.pageNumber ?? index + 1;
+      const metadata = chunk.metadata as { pageNumber?: number } | undefined;
+      const pageNumber =
+        metadata && typeof metadata.pageNumber === "number"
+          ? metadata.pageNumber
+          : index + 1;
       const vector = embeddings[index];
       if (!vector) {
         throw new Error(`Missing embedding for chunk ${index}`);
@@ -92,7 +96,7 @@ const worker = new Worker<FileJobData>(
           ...chunk.metadata,
           content: chunk.pageContent,
           fileId,
-          loc: { pageNumber }, 
+          loc: { pageNumber },
         },
       };
     });
@@ -106,12 +110,16 @@ const worker = new Worker<FileJobData>(
   {
     concurrency: 10,
     connection: {
-      host: process.env.REDIS_HOST || "localhost",
-      port: parseInt(process.env.REDIS_PORT || "6379"),
+      host: process.env.REDIS_HOST ?? "localhost",
+      port: parseInt(process.env.REDIS_PORT ?? "6379"),
     },
   },
 );
 
-ensureCollectionExists().then(() => {
-  console.log("Worker is listening for jobs...");
-});
+ensureCollectionExists()
+  .then(() => {
+    console.log("Worker is listening for jobs...");
+  })
+  .catch((error) => {
+    console.error("Failed to ensure collection exists:", error);
+  });

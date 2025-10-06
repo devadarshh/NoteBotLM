@@ -5,7 +5,7 @@ import {
   smoothStream,
   streamText,
 } from "ai";
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
@@ -15,7 +15,7 @@ import { QdrantClient } from "@qdrant/js-client-rest";
 
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 const qdrantClient = new QdrantClient({
-  url: process.env.QDRANT_URL || "http://localhost:6333",
+  url: process.env.QDRANT_URL,
 });
 
 const collectionName = "document-embeddings-hf";
@@ -183,10 +183,16 @@ export async function POST(req: NextRequest) {
 
     const context = searchResult
       .map((result, index) => {
-        const payload = result.payload;
-        const content = payload?.content as string;
-        const fileId = payload?.fileId as string;
-        const pageNumber = (payload?.loc as any)?.pageNumber ?? 1;
+        type PayloadType = {
+          content?: string;
+          fileId?: string;
+          loc?: { pageNumber?: number };
+        };
+
+        const payload = result.payload as PayloadType;
+        const content = payload?.content ?? "";
+        const fileId = payload?.fileId ?? "";
+        const pageNumber = payload?.loc?.pageNumber ?? 1;
 
         return `---
 Source ID: ${index + 1}
