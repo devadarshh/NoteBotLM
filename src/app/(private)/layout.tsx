@@ -16,10 +16,8 @@ export default async function PrivateLayout({
 
   return (
     <SidebarProvider>
-      <ChatSidebar user={session.user} />
-      <SidebarInset className="flex flex-1 flex-col">
-        {children}
-      </SidebarInset>
+      {/* <ChatSidebar user={session.user} /> */}
+      <SidebarInset className="flex flex-1 flex-col">{children}</SidebarInset>
     </SidebarProvider>
   );
 }

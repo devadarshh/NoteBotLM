@@ -15,12 +15,22 @@
   -moz-user-select: none;
   -ms-user-select: none;
   caret-color: transparent;
+  -webkit-overflow-scrolling: touch; /* Enable smooth scrolling on iOS */
+  touch-action: manipulation; /* Allow touch scrolling */
 }
 
 input,
 textarea {
   user-select: text;
   caret-color: auto;
+}
+
+/* Ensure body and html can scroll */
+html,
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 @theme inline {
