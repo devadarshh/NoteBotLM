@@ -3,13 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -27,6 +21,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { api } from "@/trpc/react";
 
 export default function QuizPage() {
   const router = useRouter();
@@ -34,6 +29,14 @@ export default function QuizPage() {
     "generate",
   );
   const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedDocument, setSelectedDocument] = useState<string>("");
+
+  // Fetch user's uploaded documents
+  const { data: userDocuments = [], isLoading: isLoadingDocuments } =
+    api.chat.listFiles.useQuery();
+
+  // Helper to get selected document details
+  const selectedDoc = userDocuments.find((doc) => doc.id === selectedDocument);
 
   const mockQuestions = [
     {
@@ -95,13 +98,48 @@ export default function QuizPage() {
                   <Label className="text-sm font-medium text-gray-700">
                     Select Document
                   </Label>
-                  <Select>
+                  <Select
+                    value={selectedDocument}
+                    onValueChange={setSelectedDocument}
+                  >
                     <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
-                      <SelectValue placeholder="Choose a document" />
+                      <SelectValue
+                        placeholder={
+                          isLoadingDocuments
+                            ? "Loading documents..."
+                            : userDocuments.length === 0
+                              ? "No documents uploaded yet"
+                              : "Choose a document"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">Physics Notes</SelectItem>
-                      <SelectItem value="2">Math Formulas</SelectItem>
+                      {isLoadingDocuments ? (
+                        <SelectItem value="loading" disabled>
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Loading documents...
+                          </div>
+                        </SelectItem>
+                      ) : userDocuments.length === 0 ? (
+                        <SelectItem value="empty" disabled>
+                          <div className="text-gray-500">
+                            No documents found. Please upload documents first.
+                          </div>
+                        </SelectItem>
+                      ) : (
+                        userDocuments.map((doc) => (
+                          <SelectItem key={doc.id} value={doc.id}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{doc.name}</span>
+                              <span className="text-xs text-gray-500">
+                                {(doc.size / 1024 / 1024).toFixed(1)} MB •{" "}
+                                {new Date(doc.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -138,17 +176,52 @@ export default function QuizPage() {
                   </Select>
                 </div>
 
+                {selectedDoc && (
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                    <p className="text-sm text-blue-800">
+                      <span className="font-medium">Selected Document:</span>{" "}
+                      {selectedDoc.name}
+                    </p>
+                    <p className="text-xs text-blue-600">
+                      {(selectedDoc.size / 1024 / 1024).toFixed(1)} MB •
+                      Uploaded{" "}
+                      {new Date(selectedDoc.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+
                 <Button
                   onClick={() => setStage("quiz")}
                   className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={
+                    !selectedDocument ||
+                    isLoadingDocuments ||
+                    userDocuments.length === 0
+                  }
                 >
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Generate Quiz
                 </Button>
 
-                <p className="text-center text-sm text-gray-400">
-                  Please upload documents first to generate quizzes
-                </p>
+                {userDocuments.length === 0 && !isLoadingDocuments ? (
+                  <div className="text-center">
+                    <p className="mb-2 text-sm text-amber-600">
+                      No documents found. Please upload documents first to
+                      generate quizzes.
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => router.push("/dashboard/documents")}
+                      className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                    >
+                      Upload Documents
+                    </Button>
+                  </div>
+                ) : !selectedDocument ? (
+                  <p className="text-center text-sm text-gray-400">
+                    Please select a document to generate quiz
+                  </p>
+                ) : null}
               </CardContent>
             </Card>
           </div>
