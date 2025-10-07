@@ -23,6 +23,14 @@ import {
 import { Label } from "@/components/ui/label";
 import { api } from "@/trpc/react";
 
+interface QuizQuestion {
+  question: string;
+  options?: string[];
+  correctAnswer: number | string;
+  explanation: string;
+  topic: string;
+}
+
 export default function QuizPage() {
   const router = useRouter();
   const [stage, setStage] = useState<"generate" | "quiz" | "result">(
@@ -30,13 +38,57 @@ export default function QuizPage() {
   );
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedDocument, setSelectedDocument] = useState<string>("");
+  const [quizType, setQuizType] = useState<string>("");
+  const [numberOfQuestions, setNumberOfQuestions] = useState<string>("");
+  const [generatedQuestions, setGeneratedQuestions] = useState<QuizQuestion[]>(
+    [],
+  );
+  const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
 
   // Fetch user's uploaded documents
   const { data: userDocuments = [], isLoading: isLoadingDocuments } =
     api.chat.listFiles.useQuery();
 
+  // Quiz generation mutation
+  const generateQuizMutation = api.chat.generateQuiz.useMutation();
+
   // Helper to get selected document details
   const selectedDoc = userDocuments.find((doc) => doc.id === selectedDocument);
+
+  // Handle quiz generation
+  const handleGenerateQuiz = async () => {
+    if (!selectedDocument || !quizType || !numberOfQuestions) {
+      return;
+    }
+
+    try {
+      setIsGeneratingQuiz(true);
+      const result = await generateQuizMutation.mutateAsync({
+        fileId: selectedDocument,
+        quizType: quizType as "MCQ" | "SAQ" | "LAQ",
+        numberOfQuestions: parseInt(numberOfQuestions),
+      });
+
+      setGeneratedQuestions(result.questions as QuizQuestion[]);
+      setCurrentQuestion(0);
+      setStage("quiz");
+    } catch (error) {
+      console.error("Error generating quiz:", error);
+      // You might want to show a toast notification here
+    } finally {
+      setIsGeneratingQuiz(false);
+    }
+  };
+
+  // Reset quiz state for new quiz
+  const handleNewQuiz = () => {
+    setStage("generate");
+    setCurrentQuestion(0);
+    setGeneratedQuestions([]);
+    setSelectedDocument("");
+    setQuizType("");
+    setNumberOfQuestions("");
+  };
 
   const mockQuestions = [
     {
@@ -57,8 +109,10 @@ export default function QuizPage() {
     },
   ];
 
-  const currentQ = mockQuestions[currentQuestion];
+  const currentQ = generatedQuestions[currentQuestion];
   const isMCQ = currentQ?.options && currentQ.options.length > 0;
+  const questionsToShow =
+    generatedQuestions.length > 0 ? generatedQuestions : mockQuestions;
 
   return (
     <div className="min-h-screen bg-white">
@@ -148,7 +202,7 @@ export default function QuizPage() {
                   <Label className="text-sm font-medium text-gray-700">
                     Quiz Type
                   </Label>
-                  <Select>
+                  <Select value={quizType} onValueChange={setQuizType}>
                     <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
@@ -164,7 +218,10 @@ export default function QuizPage() {
                   <Label className="text-sm font-medium text-gray-700">
                     Number of Questions
                   </Label>
-                  <Select>
+                  <Select
+                    value={numberOfQuestions}
+                    onValueChange={setNumberOfQuestions}
+                  >
                     <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue placeholder="Select number" />
                     </SelectTrigger>
@@ -191,16 +248,28 @@ export default function QuizPage() {
                 )}
 
                 <Button
-                  onClick={() => setStage("quiz")}
+                  onClick={handleGenerateQuiz}
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   disabled={
                     !selectedDocument ||
+                    !quizType ||
+                    !numberOfQuestions ||
                     isLoadingDocuments ||
-                    userDocuments.length === 0
+                    userDocuments.length === 0 ||
+                    isGeneratingQuiz
                   }
                 >
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generate Quiz
+                  {isGeneratingQuiz ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Quiz...
+                    </>
+                  ) : (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4" />
+                      Generate Quiz
+                    </>
+                  )}
                 </Button>
 
                 {userDocuments.length === 0 && !isLoadingDocuments ? (
@@ -217,9 +286,10 @@ export default function QuizPage() {
                       Upload Documents
                     </Button>
                   </div>
-                ) : !selectedDocument ? (
+                ) : !selectedDocument || !quizType || !numberOfQuestions ? (
                   <p className="text-center text-sm text-gray-400">
-                    Please select a document to generate quiz
+                    Please select a document, quiz type, and number of questions
+                    to generate quiz
                   </p>
                 ) : null}
               </CardContent>
@@ -234,7 +304,7 @@ export default function QuizPage() {
             <div className="mb-8 flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-                  Question {currentQuestion + 1} of {mockQuestions.length}
+                  Question {currentQuestion + 1} of {questionsToShow.length}
                 </h1>
                 <p className="mt-1 text-sm text-gray-500">{currentQ?.topic}</p>
               </div>
@@ -253,7 +323,7 @@ export default function QuizPage() {
 
                 {isMCQ ? (
                   <RadioGroup className="space-y-3">
-                    {currentQ.options.map((option, idx) => (
+                    {currentQ.options?.map((option: string, idx: number) => (
                       <div
                         key={idx}
                         className="flex items-center space-x-3 rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-blue-200 hover:bg-blue-50/50"
@@ -291,7 +361,7 @@ export default function QuizPage() {
                   >
                     Previous
                   </Button>
-                  {currentQuestion < mockQuestions.length - 1 ? (
+                  {currentQuestion < questionsToShow.length - 1 ? (
                     <Button
                       onClick={() => setCurrentQuestion(currentQuestion + 1)}
                       className="flex-1 bg-blue-600 hover:bg-blue-700"
@@ -339,7 +409,7 @@ export default function QuizPage() {
 
             {/* Question Review */}
             <div className="space-y-4">
-              {mockQuestions.map((q, idx) => (
+              {questionsToShow.map((q: QuizQuestion, idx: number) => (
                 <Card
                   key={idx}
                   className="border border-gray-100 bg-white shadow-sm"
@@ -359,7 +429,7 @@ export default function QuizPage() {
                         <p className="mb-3 font-semibold text-gray-900">
                           {q.question}
                         </p>
-                        {q.options.length > 0 && (
+                        {q.options && q.options.length > 0 && (
                           <>
                             <p className="mb-1 text-sm text-gray-500">
                               Your answer:{" "}
@@ -370,7 +440,9 @@ export default function QuizPage() {
                             <p className="mb-3 text-sm text-green-600">
                               Correct answer:{" "}
                               <span className="font-medium">
-                                {q.options[q.correctAnswer]}
+                                {typeof q.correctAnswer === "number"
+                                  ? q.options[q.correctAnswer]
+                                  : q.correctAnswer}
                               </span>
                             </p>
                           </>
@@ -393,7 +465,7 @@ export default function QuizPage() {
             {/* Action Buttons */}
             <div className="flex gap-3">
               <Button
-                onClick={() => setStage("generate")}
+                onClick={handleNewQuiz}
                 className="flex-1 bg-blue-600 hover:bg-blue-700"
               >
                 <RefreshCw className="mr-2 h-4 w-4" />
