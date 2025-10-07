@@ -330,8 +330,12 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                                                 })
                                               }
                                             >
-                                              {typeof children === 'string' || typeof children === 'number' 
-                                                ? String(children).replace(/[\[\]]/g, "")
+                                              {typeof children === "string" ||
+                                              typeof children === "number"
+                                                ? String(children).replace(
+                                                    /[\[\]]/g,
+                                                    "",
+                                                  )
                                                 : children}
                                             </span>
                                           </TooltipTrigger>

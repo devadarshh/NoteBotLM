@@ -24,20 +24,41 @@ export default function Dashboard() {
   const router = useRouter();
   const { data: session } = useSession();
   const [isNavigatingToChat, setIsNavigatingToChat] = useState(false);
+  const [isNavigatingToDocuments, setIsNavigatingToDocuments] = useState(false);
+  const [isNavigatingToQuiz, setIsNavigatingToQuiz] = useState(false);
+  const [isNavigatingToAnalytics, setIsNavigatingToAnalytics] = useState(false);
 
   // Fetch real dashboard statistics
   const { data: dashboardStats, isLoading: isLoadingStats } =
     api.chat.getDashboardStats.useQuery();
 
   const handleAnalyticsClick = () => {
+    setIsNavigatingToAnalytics(true);
     router.push("/dashboard/analytics");
+
+    // Reset loading state after 3 seconds as failsafe
+    setTimeout(() => {
+      setIsNavigatingToAnalytics(false);
+    }, 3000);
   };
 
   const handleQuizClick = () => {
+    setIsNavigatingToQuiz(true);
     router.push("/dashboard/quiz");
+
+    // Reset loading state after 3 seconds as failsafe
+    setTimeout(() => {
+      setIsNavigatingToQuiz(false);
+    }, 3000);
   };
   const handleDocumentClick = () => {
+    setIsNavigatingToDocuments(true);
     router.push("/dashboard/documents");
+
+    // Reset loading state after 3 seconds as failsafe
+    setTimeout(() => {
+      setIsNavigatingToDocuments(false);
+    }, 3000);
   };
   const handleAITutorClick = () => {
     setIsNavigatingToChat(true);
@@ -293,13 +314,40 @@ export default function Dashboard() {
           </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <Card
-              className="group relative cursor-pointer overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-blue-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-blue-600"
+              className={`group relative cursor-pointer overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-blue-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-blue-600 ${
+                isNavigatingToDocuments ? "scale-[0.98] opacity-75" : ""
+              }`}
               onClick={handleDocumentClick}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-blue-950/20"></div>
+
+              {/* Loading Overlay */}
+              {isNavigatingToDocuments && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 backdrop-blur-sm dark:bg-gray-800/90">
+                  <div className="flex flex-col items-center space-y-3">
+                    <div className="relative">
+                      <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600 dark:border-blue-800 dark:border-t-blue-400"></div>
+                      <div className="absolute inset-0 h-8 w-8 animate-pulse rounded-full border border-blue-300/50 dark:border-blue-600/50"></div>
+                    </div>
+                    <div className="flex flex-col items-center space-y-1">
+                      <span className="animate-pulse text-sm font-medium text-blue-700 dark:text-blue-300">
+                        Opening Documents...
+                      </span>
+                      <span className="text-xs text-blue-600/70 dark:text-blue-400/70">
+                        Loading your files
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <CardContent className="relative p-6">
                 <div className="flex flex-col space-y-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg transition-transform duration-300 group-hover:scale-110">
+                  <div
+                    className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg transition-transform duration-300 group-hover:scale-110 ${
+                      isNavigatingToDocuments ? "scale-105" : ""
+                    }`}
+                  >
                     <Upload className="h-6 w-6 text-white" />
                   </div>
                   <div>
@@ -315,13 +363,40 @@ export default function Dashboard() {
             </Card>
 
             <Card
-              className="group relative cursor-pointer overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-green-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-green-600"
+              className={`group relative cursor-pointer overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-green-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-green-600 ${
+                isNavigatingToQuiz ? "scale-[0.98] opacity-75" : ""
+              }`}
               onClick={handleQuizClick}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-green-50/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-green-950/20"></div>
+
+              {/* Loading Overlay */}
+              {isNavigatingToQuiz && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 backdrop-blur-sm dark:bg-gray-800/90">
+                  <div className="flex flex-col items-center space-y-3">
+                    <div className="relative">
+                      <div className="h-8 w-8 animate-spin rounded-full border-2 border-green-200 border-t-green-600 dark:border-green-800 dark:border-t-green-400"></div>
+                      <div className="absolute inset-0 h-8 w-8 animate-pulse rounded-full border border-green-300/50 dark:border-green-600/50"></div>
+                    </div>
+                    <div className="flex flex-col items-center space-y-1">
+                      <span className="animate-pulse text-sm font-medium text-green-700 dark:text-green-300">
+                        Opening Quiz...
+                      </span>
+                      <span className="text-xs text-green-600/70 dark:text-green-400/70">
+                        Preparing questions
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <CardContent className="relative p-6">
                 <div className="flex flex-col space-y-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-600 to-green-700 shadow-lg transition-transform duration-300 group-hover:scale-110">
+                  <div
+                    className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-600 to-green-700 shadow-lg transition-transform duration-300 group-hover:scale-110 ${
+                      isNavigatingToQuiz ? "scale-105" : ""
+                    }`}
+                  >
                     <FileText className="h-6 w-6 text-white" />
                   </div>
                   <div>
@@ -337,13 +412,40 @@ export default function Dashboard() {
             </Card>
 
             <Card
-              className="group relative cursor-pointer overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-purple-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-purple-600"
+              className={`group relative cursor-pointer overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-purple-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-purple-600 ${
+                isNavigatingToAnalytics ? "scale-[0.98] opacity-75" : ""
+              }`}
               onClick={handleAnalyticsClick}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-purple-50/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-purple-950/20"></div>
+
+              {/* Loading Overlay */}
+              {isNavigatingToAnalytics && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 backdrop-blur-sm dark:bg-gray-800/90">
+                  <div className="flex flex-col items-center space-y-3">
+                    <div className="relative">
+                      <div className="h-8 w-8 animate-spin rounded-full border-2 border-purple-200 border-t-purple-600 dark:border-purple-800 dark:border-t-purple-400"></div>
+                      <div className="absolute inset-0 h-8 w-8 animate-pulse rounded-full border border-purple-300/50 dark:border-purple-600/50"></div>
+                    </div>
+                    <div className="flex flex-col items-center space-y-1">
+                      <span className="animate-pulse text-sm font-medium text-purple-700 dark:text-purple-300">
+                        Opening Analytics...
+                      </span>
+                      <span className="text-xs text-purple-600/70 dark:text-purple-400/70">
+                        Loading insights
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <CardContent className="relative p-6">
                 <div className="flex flex-col space-y-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 shadow-lg transition-transform duration-300 group-hover:scale-110">
+                  <div
+                    className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 shadow-lg transition-transform duration-300 group-hover:scale-110 ${
+                      isNavigatingToAnalytics ? "scale-105" : ""
+                    }`}
+                  >
                     <TrendingUp className="h-6 w-6 text-white" />
                   </div>
                   <div>

@@ -16,15 +16,6 @@ export default function ChatPage() {
       <header className="border-border bg-card flex h-16 items-center border-b px-4">
         <SidebarTrigger className="cursor-pointer" />
 
-        <div className="ml-2 flex items-center space-x-2">
-          <div className="bg-primary flex h-6 w-6 items-center justify-center rounded">
-            <span className="text-primary-foreground text-xs font-semibold">
-              N
-            </span>
-          </div>
-          <h1 className="text-lg font-semibold">NoteBotLM</h1>
-        </div>
-
         <div className="ml-auto flex items-center space-x-3">
           <Button
             variant="ghost"
