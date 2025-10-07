@@ -9,9 +9,26 @@ import { AppToaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: "Sage",
+  title: "NoteBot LM",
   description: "Your AI Research Assistant",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.svg", sizes: "180x180", type: "image/svg+xml" },
+    ],
+    other: [
+      {
+        rel: "android-chrome-192x192",
+        url: "/android-chrome-192x192.svg",
+        sizes: "192x192",
+        type: "image/svg+xml",
+      },
+    ],
+  },
+  manifest: "/site.webmanifest",
 };
 
 // Swapped Geist for Inter (professional, highly readable). Reuse the same

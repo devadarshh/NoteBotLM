@@ -51,6 +51,10 @@ export const authConfig = {
       },
     }),
     redirect: ({ url, baseUrl }) => {
+      // Allow sign out to redirect to auth page
+      if (url.includes("/auth/signin")) {
+        return url;
+      }
       // Redirect to dashboard after sign in
       if (url.startsWith("/") && !url.startsWith("//")) {
         return `${baseUrl}/dashboard`;

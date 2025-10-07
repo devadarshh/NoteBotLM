@@ -61,7 +61,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <h1 className="text-lg font-bold text-gray-900 dark:text-white">
-                  NoteBot LM
+                  NoteBot <span className="text-blue-500">LM</span>
                 </h1>
               </div>
             </div>
@@ -101,7 +101,7 @@ export default function Dashboard() {
                 Welcome back, {userFirstName}
               </h2>
               <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-                Here's your learning overview
+                Here&apos;s your learning overview
               </p>
             </div>
             <div className="flex items-center space-x-3 rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 shadow-sm dark:border-blue-800 dark:from-blue-950/50 dark:to-indigo-950/50">
@@ -142,7 +142,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <div className="mt-4">
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-3xl font-bold text-gray-900 dark:text-white">
                       {isLoadingStats ? (
                         <div className="flex w-12 items-center justify-start">
                           <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600 dark:border-blue-800 dark:border-t-blue-400"></div>
@@ -150,7 +150,7 @@ export default function Dashboard() {
                       ) : (
                         (dashboardStats?.totalDocuments ?? 0)
                       )}
-                    </p>
+                    </div>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       {isLoadingStats
                         ? ""
@@ -179,7 +179,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <div className="mt-4">
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-3xl font-bold text-gray-900 dark:text-white">
                       {isLoadingStats ? (
                         <div className="flex w-12 items-center justify-start">
                           <div className="h-5 w-5 animate-spin rounded-full border-2 border-green-200 border-t-green-600 dark:border-green-800 dark:border-t-green-400"></div>
@@ -187,7 +187,7 @@ export default function Dashboard() {
                       ) : (
                         (dashboardStats?.quizzesCompleted ?? 0)
                       )}
-                    </p>
+                    </div>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       {isLoadingStats
                         ? ""
@@ -215,7 +215,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <div className="mt-4">
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-3xl font-bold text-gray-900 dark:text-white">
                       {isLoadingStats ? (
                         <div className="flex w-12 items-center justify-start">
                           <div className="h-5 w-5 animate-spin rounded-full border-2 border-purple-200 border-t-purple-600 dark:border-purple-800 dark:border-t-purple-400"></div>
@@ -225,7 +225,7 @@ export default function Dashboard() {
                       ) : (
                         "--"
                       )}
-                    </p>
+                    </div>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       {isLoadingStats
                         ? ""
@@ -253,7 +253,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <div className="mt-4">
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-3xl font-bold text-gray-900 dark:text-white">
                       {isLoadingStats ? (
                         <div className="flex w-12 items-center justify-start">
                           <div className="h-5 w-5 animate-spin rounded-full border-2 border-orange-200 border-t-orange-600 dark:border-orange-800 dark:border-t-orange-400"></div>
@@ -263,7 +263,7 @@ export default function Dashboard() {
                       ) : (
                         "0h"
                       )}
-                    </p>
+                    </div>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       {isLoadingStats ? "" : "This week"}
                     </p>
