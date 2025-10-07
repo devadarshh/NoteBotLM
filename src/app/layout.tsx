@@ -2,6 +2,7 @@ import "@/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Inter } from "next/font/google";
+import { SessionProvider } from "next-auth/react";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import { AppToaster } from "@/components/ui/toaster";
@@ -27,11 +28,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable}`}>
       <body>
-        <TRPCReactProvider>
-          {children}
-          {/* Global toast portal (Sonner) */}
-          <AppToaster />
-        </TRPCReactProvider>
+        <SessionProvider>
+          <TRPCReactProvider>
+            {children}
+            {/* Global toast portal (Sonner) */}
+            <AppToaster />
+          </TRPCReactProvider>
+        </SessionProvider>
       </body>
     </html>
   );

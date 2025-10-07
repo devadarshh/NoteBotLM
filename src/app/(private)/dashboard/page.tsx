@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -19,6 +20,11 @@ import {
 
 export default function Dashboard() {
   const router = useRouter();
+  const { data: session } = useSession();
+
+  const handleAnalyticsClick = () => {
+    router.push("/dashboard/analytics");
+  };
 
   const handleQuizClick = () => {
     router.push("/dashboard/quiz");
@@ -29,6 +35,13 @@ export default function Dashboard() {
   const handleAITutorClick = () => {
     router.push("/chat");
   };
+
+  const handleSignOut = () => {
+    void signOut({ callbackUrl: "/auth/signin" });
+  };
+
+  // Get user's first name from session
+  const userFirstName = session?.user?.name?.split(" ")[0] ?? "User";
 
   return (
     <div className="min-h-screen bg-white">
@@ -61,6 +74,7 @@ export default function Dashboard() {
                 variant="ghost"
                 size="sm"
                 className="text-sm text-gray-600 hover:text-gray-900"
+                onClick={handleSignOut}
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">Sign Out</span>
@@ -77,7 +91,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-                Welcome back, Adarsh
+                Welcome back, {userFirstName}
               </h2>
               <p className="mt-1 text-sm text-gray-500">
                 Here&apos;s your learning overview
@@ -218,7 +232,10 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="group cursor-pointer border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md">
+            <Card
+              className="group cursor-pointer border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md"
+              onClick={handleAnalyticsClick}
+            >
               <CardContent className="p-6">
                 <div className="flex flex-col items-start space-y-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
