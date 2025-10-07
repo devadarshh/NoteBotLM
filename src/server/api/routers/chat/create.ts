@@ -1,11 +1,9 @@
 import { z } from "zod";
 
-import {
-  createTRPCRouter,
-  protectedProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { base64ToFile } from "@/lib/utils";
 import { uploadToSupabase } from "./helper";
+import { supabase } from "@/lib/supabase";
 
 export const chatRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -61,15 +59,15 @@ export const chatRouter = createTRPCRouter({
               content: true,
               role: true,
               createdAt: true,
-              messageFiles:{
-                include:{
-                  file:true
-                }
+              messageFiles: {
+                include: {
+                  file: true,
+                },
               },
-              messageSources:{
-                include:{
-                  file:true
-                }
+              messageSources: {
+                include: {
+                  file: true,
+                },
               },
             },
           },
@@ -77,7 +75,7 @@ export const chatRouter = createTRPCRouter({
       });
 
       if (!chat) {
-        throw new Error('Chat not found');
+        throw new Error("Chat not found");
       }
       return chat;
     }),
@@ -92,8 +90,8 @@ export const chatRouter = createTRPCRouter({
         },
       });
     }),
-  
-    uploadFiles: protectedProcedure
+
+  uploadFiles: protectedProcedure
     .input(
       z.object({
         base64Files: z.array(
@@ -133,6 +131,66 @@ export const chatRouter = createTRPCRouter({
       } catch (error) {
         console.error("Error in uploadFiles mutation:", error);
         throw new Error("Failed to upload files");
+      }
+    }),
+
+  listFiles: protectedProcedure.query(async ({ ctx }) => {
+    const files = await ctx.db.file.findMany({
+      where: {
+        userId: ctx.session.user.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        name: true,
+        size: true,
+        fileType: true,
+        createdAt: true,
+        supabasePath: true,
+      },
+    });
+    return files;
+  }),
+
+  deleteFile: protectedProcedure
+    .input(z.object({ fileId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Find the file to ensure it belongs to the user
+      const file = await ctx.db.file.findFirst({
+        where: {
+          id: input.fileId,
+          userId: ctx.session.user.id,
+        },
+      });
+
+      if (!file) {
+        throw new Error(
+          "File not found or you don't have permission to delete it",
+        );
+      }
+
+      try {
+        // Delete from Supabase storage
+        const { error: storageError } = await supabase.storage
+          .from("files")
+          .remove([file.supabasePath]);
+
+        if (storageError) {
+          console.error("Error deleting from Supabase storage:", storageError);
+          // Continue with database deletion even if storage deletion fails
+        }
+
+        // Delete from database
+        await ctx.db.file.delete({
+          where: { id: input.fileId },
+        });
+
+        return { success: true };
+      } catch (error) {
+        console.error("Error deleting file:", error);
+        throw new Error("Failed to delete file");
       }
     }),
 });
