@@ -146,7 +146,7 @@ export default function DocumentsPage() {
               </div>
               <div>
                 <h1 className="text-base font-semibold text-gray-900 dark:text-white">
-                  ChatDocs
+                  NoteBot <span className="text-blue-500">LM</span>
                 </h1>
               </div>
             </div>
@@ -191,7 +191,7 @@ export default function DocumentsPage() {
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             My Documents
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
             Upload and manage your coursebooks
           </p>
         </div>
@@ -200,12 +200,14 @@ export default function DocumentsPage() {
         <Card className="mb-8 border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <CardContent className="p-6">
             <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Upload New Document
-              </h2>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Upload PDF coursebooks (max 50MB)
-              </p>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Upload New Document
+                </h2>
+                <span className="rounded-md bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
+                  max 50MB
+                </span>
+              </div>
             </div>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <Input
@@ -231,8 +233,8 @@ export default function DocumentsPage() {
 
             {/* Selected Files Display */}
             {selectedFiles && selectedFiles.length > 0 && (
-              <div className="mt-6 border-t border-gray-100 pt-6 dark:border-gray-700">
-                <h4 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <div className="mt-8 border-t border-gray-100 pt-6 dark:border-gray-700">
+                <h4 className="mb-4 text-sm font-medium text-gray-700 dark:text-gray-300">
                   Selected Files ({selectedFiles.length})
                 </h4>
                 <div className="space-y-2">
@@ -333,6 +335,9 @@ export default function DocumentsPage() {
                     <Button
                       size="sm"
                       className="h-7 flex-1 cursor-pointer bg-blue-600 px-2 py-1 text-xs hover:bg-blue-700"
+                      onClick={() =>
+                        router.push(`/dashboard/quiz?docId=${doc.id}`)
+                      }
                     >
                       <Eye className="mr-1 h-3 w-3" />
                       Quiz

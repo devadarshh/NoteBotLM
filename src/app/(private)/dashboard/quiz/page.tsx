@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,6 +38,7 @@ interface QuizQuestion {
 
 export default function QuizPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
 
   const handleSignOut = () => {
@@ -58,6 +59,18 @@ export default function QuizPage() {
   // Fetch user's uploaded documents
   const { data: userDocuments = [], isLoading: isLoadingDocuments } =
     api.chat.listFiles.useQuery();
+
+  // Auto-select document from URL parameter
+  useEffect(() => {
+    const docId = searchParams.get("docId");
+    if (docId && userDocuments.length > 0) {
+      // Check if the document exists in user's documents
+      const documentExists = userDocuments.some((doc) => doc.id === docId);
+      if (documentExists) {
+        setSelectedDocument(docId);
+      }
+    }
+  }, [searchParams, userDocuments]);
 
   // Quiz generation mutation
   const generateQuizMutation = api.chat.generateQuiz.useMutation();
