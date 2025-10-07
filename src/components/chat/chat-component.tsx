@@ -185,7 +185,7 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+    <div className="bg-background flex h-full min-h-0 flex-col overflow-hidden">
       <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
         <ResizablePanel defaultSize={citationData ? 60 : 100} minSize={40}>
           <div className="flex h-full min-h-0 flex-col">
@@ -193,17 +193,17 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
               {messages.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center">
                   <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+                    <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
                       <span className="text-primary-foreground text-sm font-bold">
-                        C
+                        N
                       </span>
                     </div>
                   </div>
                   <h2 className="mb-2 text-lg font-semibold">
-                    Welcome to ChatDocs
+                    Welcome to NoteBotLM
                   </h2>
                   <p className="text-muted-foreground">
-                    Start a conversation with your AI assistant
+                    Start a conversation with your AI research assistant
                   </p>
                 </div>
               ) : (
@@ -260,8 +260,8 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                           <div
                             className={`rounded-lg px-4 py-2 ${
                               message.role === "user"
-                                ? "bg-muted"
-                                : "bg-gray-100"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-card border-border text-card-foreground border"
                             }`}
                           >
                             {/* Display attached files */}
@@ -270,7 +270,7 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                                 {filesToDisplay.map((messageFile) => (
                                   <div
                                     key={messageFile.file.id}
-                                    className="flex items-center space-x-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm"
+                                    className="border-border bg-card flex items-center space-x-2 rounded-xl border px-3 py-2 shadow-sm"
                                   >
                                     <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-500">
                                       <svg
@@ -286,10 +286,10 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                                       </svg>
                                     </div>
                                     <div className="min-w-0">
-                                      <p className="max-w-[150px] truncate text-xs font-medium text-gray-900">
+                                      <p className="text-card-foreground max-w-[150px] truncate text-xs font-medium">
                                         {messageFile.file.name}
                                       </p>
-                                      <p className="text-xs text-gray-500">
+                                      <p className="text-muted-foreground text-xs">
                                         PDF
                                       </p>
                                     </div>
@@ -318,7 +318,7 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                                         <Tooltip>
                                           <TooltipTrigger asChild>
                                             <span
-                                              className="cursor-pointer font-bold text-blue-600"
+                                              className="text-primary hover:text-primary/80 cursor-pointer font-bold"
                                               onClick={() =>
                                                 handleCitationClick({
                                                   messageId: message.id,
@@ -355,23 +355,23 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                   {isWaitingForResponse && (
                     <div className="flex justify-start">
                       <div className="flex space-x-2">
-                        <div className="rounded-lg bg-gray-100 px-4 py-3">
+                        <div className="bg-card border-border text-card-foreground rounded-lg border px-4 py-3">
                           <div className="flex items-center space-x-2">
                             <div className="flex space-x-1">
                               <div
-                                className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+                                className="bg-primary h-2 w-2 animate-bounce rounded-full"
                                 style={{ animationDelay: "0ms" }}
                               ></div>
                               <div
-                                className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+                                className="bg-primary h-2 w-2 animate-bounce rounded-full"
                                 style={{ animationDelay: "150ms" }}
                               ></div>
                               <div
-                                className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+                                className="bg-primary h-2 w-2 animate-bounce rounded-full"
                                 style={{ animationDelay: "300ms" }}
                               ></div>
                             </div>
-                            <span className="text-sm text-gray-500">
+                            <span className="text-muted-foreground text-sm">
                               Thinking...
                             </span>
                           </div>
@@ -396,9 +396,11 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
           <>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={40} minSize={30}>
-              <div className="flex h-full flex-col border-l">
-                <div className="bg-muted/50 flex items-center justify-between border-b p-4">
-                  <h2 className="text-sm font-medium">Source Document</h2>
+              <div className="border-border bg-card flex h-full flex-col border-l">
+                <div className="bg-muted/50 border-border flex items-center justify-between border-b p-4">
+                  <h2 className="text-card-foreground text-sm font-medium">
+                    Source Document
+                  </h2>
                   <Button
                     variant="ghost"
                     size="sm"

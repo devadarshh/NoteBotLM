@@ -27,11 +27,13 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
       <SidebarHeader className="p-6 pb-4 group-data-[collapsible=icon]:p-2">
         <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center">
           <div className="flex items-center space-x-3 group-data-[collapsible=icon]:space-x-0">
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-blue-600 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8">
-              <span className="text-sm font-semibold text-white">C</span>
+            <div className="bg-primary flex h-7 w-7 items-center justify-center rounded group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8">
+              <span className="text-primary-foreground text-sm font-semibold">
+                N
+              </span>
             </div>
             <span className="text-sidebar-foreground text-base font-medium group-data-[collapsible=icon]:hidden">
-              ChatDocs
+              NoteBotLM
             </span>
           </div>
           <div className="group-data-[collapsible=icon]:hidden"></div>
@@ -42,7 +44,7 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
         <div className="mb-6 group-data-[collapsible=icon]:mb-4">
           <Button
             asChild
-            className="w-full justify-start gap-2 rounded-lg bg-blue-600 px-4 py-4 text-sm text-white transition-all group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 hover:bg-blue-700"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 w-full justify-start gap-2 rounded-lg px-4 py-4 text-sm transition-all group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
             size="sm"
           >
             <Link
