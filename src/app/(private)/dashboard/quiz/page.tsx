@@ -55,6 +55,7 @@ export default function QuizPage() {
     [],
   );
   const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
+  const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
 
   // Fetch user's uploaded documents
   const { data: userDocuments = [], isLoading: isLoadingDocuments } =
@@ -111,31 +112,11 @@ export default function QuizPage() {
     setSelectedDocument("");
     setQuizType("");
     setNumberOfQuestions("");
+    setUserAnswers({});
   };
-
-  const mockQuestions = [
-    {
-      question: "What is the unit of acceleration?",
-      options: ["m/s", "m/s²", "km/h", "m²/s"],
-      correctAnswer: 1 as number,
-      explanation:
-        "Acceleration is the rate of change of velocity per unit time.",
-      topic: "Physics",
-    },
-    {
-      question: "Define displacement.",
-      options: [],
-      correctAnswer: 0,
-      explanation:
-        "Displacement is the shortest distance between initial and final positions.",
-      topic: "Physics",
-    },
-  ];
 
   const currentQ = generatedQuestions[currentQuestion];
   const isMCQ = currentQ?.options && currentQ.options.length > 0;
-  const questionsToShow =
-    generatedQuestions.length > 0 ? generatedQuestions : mockQuestions;
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
@@ -149,7 +130,7 @@ export default function QuizPage() {
               </div>
               <div>
                 <h1 className="text-base font-semibold text-gray-900 dark:text-white">
-                  ChatDocs
+                  NoteBot <span className="text-blue-500">LM</span>
                 </h1>
               </div>
             </div>
@@ -157,7 +138,7 @@ export default function QuizPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                className="cursor-pointer text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
                 onClick={() => router.push("/dashboard")}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -177,7 +158,7 @@ export default function QuizPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                className="cursor-pointer text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
                 onClick={handleSignOut}
               >
                 <LogOut className="mr-2 h-4 w-4" />
@@ -197,7 +178,7 @@ export default function QuizPage() {
               <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
                 Generate Quiz
               </h1>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                 Create AI-powered quizzes from your coursebooks
               </p>
             </div>
@@ -212,7 +193,7 @@ export default function QuizPage() {
                     value={selectedDocument}
                     onValueChange={setSelectedDocument}
                   >
-                    <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                    <SelectTrigger className="h-11 cursor-pointer border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                       <SelectValue
                         placeholder={
                           isLoadingDocuments
@@ -223,7 +204,11 @@ export default function QuizPage() {
                         }
                       />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent
+                      className="animate-in fade-in-0 zoom-in-98 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-98 duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] data-[state=closed]:duration-300"
+                      align="start"
+                      sideOffset={4}
+                    >
                       {isLoadingDocuments ? (
                         <SelectItem value="loading" disabled>
                           <div className="flex items-center gap-2">
@@ -240,13 +225,7 @@ export default function QuizPage() {
                       ) : (
                         userDocuments.map((doc) => (
                           <SelectItem key={doc.id} value={doc.id}>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{doc.name}</span>
-                              <span className="text-xs text-gray-500">
-                                {(doc.size / 1024 / 1024).toFixed(1)} MB •{" "}
-                                {new Date(doc.createdAt).toLocaleDateString()}
-                              </span>
-                            </div>
+                            {doc.name}
                           </SelectItem>
                         ))
                       )}
@@ -259,10 +238,14 @@ export default function QuizPage() {
                     Quiz Type
                   </Label>
                   <Select value={quizType} onValueChange={setQuizType}>
-                    <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                    <SelectTrigger className="h-11 cursor-pointer border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent
+                      className="animate-in fade-in-0 zoom-in-98 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-98 duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] data-[state=closed]:duration-300"
+                      align="start"
+                      sideOffset={4}
+                    >
                       <SelectItem value="MCQ">Multiple Choice</SelectItem>
                       <SelectItem value="SAQ">Short Answer</SelectItem>
                       <SelectItem value="LAQ">Long Answer</SelectItem>
@@ -278,10 +261,14 @@ export default function QuizPage() {
                     value={numberOfQuestions}
                     onValueChange={setNumberOfQuestions}
                   >
-                    <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                    <SelectTrigger className="h-11 cursor-pointer border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                       <SelectValue placeholder="Select number" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent
+                      className="animate-in fade-in-0 zoom-in-98 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-98 duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] data-[state=closed]:duration-300"
+                      align="start"
+                      sideOffset={4}
+                    >
                       <SelectItem value="3">3 Questions</SelectItem>
                       <SelectItem value="5">5 Questions</SelectItem>
                       <SelectItem value="10">10 Questions</SelectItem>
@@ -305,7 +292,7 @@ export default function QuizPage() {
 
                 <Button
                   onClick={handleGenerateQuiz}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700"
                   disabled={
                     !selectedDocument ||
                     !quizType ||
@@ -321,10 +308,7 @@ export default function QuizPage() {
                       Generating Quiz...
                     </>
                   ) : (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4" />
-                      Generate Quiz
-                    </>
+                    "Generate Quiz"
                   )}
                 </Button>
 
@@ -337,7 +321,7 @@ export default function QuizPage() {
                     <Button
                       variant="outline"
                       onClick={() => router.push("/dashboard/documents")}
-                      className="border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/50"
+                      className="cursor-pointer border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/50"
                     >
                       Upload Documents
                     </Button>
@@ -360,7 +344,7 @@ export default function QuizPage() {
             <div className="mb-8 flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-                  Question {currentQuestion + 1} of {questionsToShow.length}
+                  Question {currentQuestion + 1} of {generatedQuestions.length}
                 </h1>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {currentQ?.topic}
@@ -368,7 +352,7 @@ export default function QuizPage() {
               </div>
               <div className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 dark:border-gray-600 dark:bg-gray-700">
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                  {currentQuestion + 1}/{mockQuestions.length}
+                  {currentQuestion + 1}/{generatedQuestions.length}
                 </span>
               </div>
             </div>
@@ -380,24 +364,31 @@ export default function QuizPage() {
                 </p>
 
                 {isMCQ ? (
-                  <RadioGroup className="space-y-3">
+                  <RadioGroup
+                    className="space-y-3"
+                    value={userAnswers[currentQuestion] ?? ""}
+                    onValueChange={(value) => {
+                      setUserAnswers((prev) => ({
+                        ...prev,
+                        [currentQuestion]: value,
+                      }));
+                    }}
+                  >
                     {currentQ.options?.map((option: string, idx: number) => (
-                      <div
+                      <Label
                         key={idx}
-                        className="flex items-center space-x-3 rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-blue-200 hover:bg-blue-50/50 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-blue-500 dark:hover:bg-blue-950/50"
+                        htmlFor={`option-${idx}`}
+                        className="flex cursor-pointer items-center space-x-3 rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-blue-200 hover:bg-blue-50/50 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-blue-500 dark:hover:bg-blue-950/50"
                       >
                         <RadioGroupItem
                           value={idx.toString()}
                           id={`option-${idx}`}
                           className="border-gray-300 dark:border-gray-500"
                         />
-                        <Label
-                          htmlFor={`option-${idx}`}
-                          className="flex-1 cursor-pointer text-gray-700 dark:text-gray-300"
-                        >
+                        <span className="flex-1 text-gray-700 dark:text-gray-300">
                           {option}
-                        </Label>
-                      </div>
+                        </span>
+                      </Label>
                     ))}
                   </RadioGroup>
                 ) : (
@@ -415,21 +406,21 @@ export default function QuizPage() {
                       setCurrentQuestion(Math.max(0, currentQuestion - 1))
                     }
                     disabled={currentQuestion === 0}
-                    className="border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                    className="cursor-pointer border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                   >
                     Previous
                   </Button>
-                  {currentQuestion < questionsToShow.length - 1 ? (
+                  {currentQuestion < generatedQuestions.length - 1 ? (
                     <Button
                       onClick={() => setCurrentQuestion(currentQuestion + 1)}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700"
+                      className="flex-1 cursor-pointer bg-blue-600 hover:bg-blue-700"
                     >
                       Next Question
                     </Button>
                   ) : (
                     <Button
                       onClick={() => setStage("result")}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700"
+                      className="flex-1 cursor-pointer bg-blue-600 hover:bg-blue-700"
                     >
                       Submit Quiz
                     </Button>
@@ -469,7 +460,7 @@ export default function QuizPage() {
 
             {/* Question Review */}
             <div className="space-y-4">
-              {questionsToShow.map((q: QuizQuestion, idx: number) => (
+              {generatedQuestions.map((q: QuizQuestion, idx: number) => (
                 <Card
                   key={idx}
                   className="border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
@@ -526,7 +517,7 @@ export default function QuizPage() {
             <div className="flex gap-3">
               <Button
                 onClick={handleNewQuiz}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                className="flex-1 cursor-pointer bg-blue-600 hover:bg-blue-700"
               >
                 <RefreshCw className="mr-2 h-4 w-4" />
                 New Quiz
@@ -534,7 +525,7 @@ export default function QuizPage() {
               <Button
                 variant="outline"
                 onClick={() => router.push("/dashboard")}
-                className="border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="cursor-pointer border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 Back to Dashboard
               </Button>

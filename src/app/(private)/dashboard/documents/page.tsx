@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/trpc/react";
@@ -29,7 +29,6 @@ export interface UploadedFile {
 
 export default function DocumentsPage() {
   const router = useRouter();
-  const { data: session } = useSession();
 
   const handleSignOut = () => {
     void signOut({ callbackUrl: "/auth/signin" });
@@ -37,7 +36,6 @@ export default function DocumentsPage() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
-  // Fetch user's actual uploaded files from database
   const {
     data: documents = [],
     refetch: refetchFiles,
@@ -115,7 +113,6 @@ export default function DocumentsPage() {
     if (selectedFiles && selectedFiles.length > 0) {
       await handleFileUpload(selectedFiles);
       setSelectedFiles(null);
-      // Reset the file input
       const fileInput = document.querySelector('input[type="file"]');
       //@ts-expect-error - fileInput type needs to be cast to HTMLInputElement
       if (fileInput) fileInput.value = "";
@@ -125,7 +122,7 @@ export default function DocumentsPage() {
   const handleDeleteFile = async (fileId: string) => {
     try {
       await deleteFileMutation.mutateAsync({ fileId });
-      void refetchFiles(); // Refresh the list after deletion
+      void refetchFiles(); 
     } catch (error) {
       console.error("Error deleting file:", error);
     }
@@ -136,7 +133,6 @@ export default function DocumentsPage() {
   };
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* Minimal Clean Header */}
       <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md dark:border-gray-700 dark:bg-gray-900/80">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
@@ -178,7 +174,6 @@ export default function DocumentsPage() {
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Back Button and Page Header */}
         <div className="mb-8">
           <Button
             variant="ghost"
@@ -196,7 +191,6 @@ export default function DocumentsPage() {
           </p>
         </div>
 
-        {/* Upload Section */}
         <Card className="mb-8 border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <CardContent className="p-6">
             <div className="mb-4">
@@ -231,7 +225,6 @@ export default function DocumentsPage() {
               </Button>
             </div>
 
-            {/* Selected Files Display */}
             {selectedFiles && selectedFiles.length > 0 && (
               <div className="mt-8 border-t border-gray-100 pt-6 dark:border-gray-700">
                 <h4 className="mb-4 text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -256,7 +249,6 @@ export default function DocumentsPage() {
           </CardContent>
         </Card>
 
-        {/* Show files currently being uploaded */}
         {uploadedFiles.length > 0 && (
           <Card className="mb-8 border border-amber-200 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/50">
             <CardContent className="p-6">
@@ -301,7 +293,6 @@ export default function DocumentsPage() {
           </Card>
         )}
 
-        {/* Documents Grid */}
         <div>
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
