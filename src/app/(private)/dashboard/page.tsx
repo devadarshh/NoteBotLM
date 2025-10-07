@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import {
 export default function Dashboard() {
   const router = useRouter();
   const { data: session } = useSession();
+  const [isNavigatingToChat, setIsNavigatingToChat] = useState(false);
 
   // Fetch real dashboard statistics
   const { data: dashboardStats, isLoading: isLoadingStats } =
@@ -39,7 +40,13 @@ export default function Dashboard() {
     router.push("/dashboard/documents");
   };
   const handleAITutorClick = () => {
+    setIsNavigatingToChat(true);
     router.push("/chat");
+
+    // Reset loading state after 3 seconds as failsafe
+    setTimeout(() => {
+      setIsNavigatingToChat(false);
+    }, 3000);
   };
 
   const handleSignOut = () => {
@@ -352,13 +359,40 @@ export default function Dashboard() {
             </Card>
 
             <Card
-              className="group relative cursor-pointer overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-orange-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-orange-600"
+              className={`group relative cursor-pointer overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-orange-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-orange-600 ${
+                isNavigatingToChat ? "scale-[0.98] opacity-75" : ""
+              }`}
               onClick={handleAITutorClick}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-orange-950/20"></div>
+
+              {/* Loading Overlay */}
+              {isNavigatingToChat && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 backdrop-blur-sm dark:bg-gray-800/90">
+                  <div className="flex flex-col items-center space-y-3">
+                    <div className="relative">
+                      <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-200 border-t-orange-600 dark:border-orange-800 dark:border-t-orange-400"></div>
+                      <div className="absolute inset-0 h-8 w-8 animate-pulse rounded-full border border-orange-300/50 dark:border-orange-600/50"></div>
+                    </div>
+                    <div className="flex flex-col items-center space-y-1">
+                      <span className="animate-pulse text-sm font-medium text-orange-700 dark:text-orange-300">
+                        Opening AI Tutor...
+                      </span>
+                      <span className="text-xs text-orange-600/70 dark:text-orange-400/70">
+                        Preparing your assistant
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <CardContent className="relative p-6">
                 <div className="flex flex-col space-y-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-600 to-orange-700 shadow-lg transition-transform duration-300 group-hover:scale-110">
+                  <div
+                    className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-600 to-orange-700 shadow-lg transition-transform duration-300 group-hover:scale-110 ${
+                      isNavigatingToChat ? "scale-105" : ""
+                    }`}
+                  >
                     <Bot className="h-6 w-6 text-white" />
                   </div>
                   <div>
