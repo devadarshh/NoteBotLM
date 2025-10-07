@@ -318,7 +318,7 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                                         <Tooltip>
                                           <TooltipTrigger asChild>
                                             <span
-                                              className="text-primary hover:text-primary/80 cursor-pointer font-bold"
+                                              className="citation-badge ml-0.5 inline-flex h-5 w-auto min-w-[1.2rem] cursor-pointer items-center justify-center rounded-full border border-blue-200 bg-blue-50 px-1.5 text-xs font-medium text-blue-700 transition-all duration-200 hover:scale-105 hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm active:scale-95 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-400 dark:hover:border-blue-700 dark:hover:bg-blue-900/50"
                                               onClick={() =>
                                                 handleCitationClick({
                                                   messageId: message.id,
@@ -330,11 +330,21 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                                                 })
                                               }
                                             >
-                                              {children}
+                                              {String(children).replace(
+                                                /[\[\]]/g,
+                                                "",
+                                              )}
                                             </span>
                                           </TooltipTrigger>
-                                          <TooltipContent>
-                                            <p>{rest["cited-text"]}</p>
+                                          <TooltipContent className="citation-tooltip max-w-sm p-3 text-sm">
+                                            <div className="space-y-1">
+                                              <p className="font-medium text-gray-900 dark:text-gray-100">
+                                                Source Reference
+                                              </p>
+                                              <p className="leading-relaxed text-gray-700 dark:text-gray-300">
+                                                {rest["cited-text"]}
+                                              </p>
+                                            </div>
                                           </TooltipContent>
                                         </Tooltip>
                                       ),
