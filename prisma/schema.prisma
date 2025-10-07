@@ -45,6 +45,7 @@ model User {
   chats         Chat[]
   files         File[]
   sessions      Session[]
+  quizzes       Quiz[]
 }
 
 model VerificationToken {
@@ -108,9 +109,39 @@ model File {
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   messageFile    MessageFile?
   messageSources MessageSource[]
+  quizzes        Quiz[]
+}
+
+model Quiz {
+  id               String         @id @default(cuid())
+  userId           String
+  fileId           String
+  title            String
+  quizType         QuizType
+  numberOfQuestions Int
+  createdAt        DateTime       @default(now())
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  file             File           @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  quizAttempts     QuizAttempt[]
+}
+
+model QuizAttempt {
+  id              String   @id @default(cuid())
+  quizId          String
+  score           Int
+  totalQuestions  Int
+  answers         Json
+  completedAt     DateTime @default(now())
+  quiz            Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
 }
 
 enum MessageRole {
   USER
   ASSISTANT
+}
+
+enum QuizType {
+  MCQ
+  SAQ
+  LAQ
 }

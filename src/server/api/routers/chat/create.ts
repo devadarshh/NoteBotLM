@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { base64ToFile } from "@/lib/utils";
@@ -348,12 +349,40 @@ Make sure to return valid JSON only.`;
       where: { userId },
     });
 
-    // Get chats for quiz statistics (we'll use chats as proxy for quizzes since there's no quiz table yet)
-    const totalChats = await ctx.db.chat.count({
-      where: { userId },
+    // Get real quiz attempts data
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const quizAttempts = await ctx.db.quizAttempt.findMany({
+      where: {
+        quiz: { userId },
+      },
+      select: {
+        score: true,
+        totalQuestions: true,
+        completedAt: true,
+      },
+      orderBy: {
+        completedAt: "desc",
+      },
     });
 
-    // Get messages to calculate activity streak and average interactions
+    // Calculate real quizzes completed
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const quizzesCompleted = quizAttempts.length;
+
+    // Calculate real average score
+    let averageScore = 0;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (quizAttempts.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const totalPercentage = quizAttempts.reduce((sum, attempt) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+        return sum + Math.round((attempt.score / attempt.totalQuestions) * 100);
+      }, 0);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      averageScore = Math.round(totalPercentage / quizAttempts.length);
+    }
+
+    // Get messages to calculate activity streak
     const userMessages = await ctx.db.message.findMany({
       where: {
         chat: { userId },
@@ -367,26 +396,134 @@ Make sure to return valid JSON only.`;
     // Calculate streak (consecutive days with activity)
     const streak = calculateStreak(userMessages.map((m) => m.createdAt));
 
-    // Calculate average score (mock for now, since we don't have quiz results table)
-    const averageScore = Math.min(85 + Math.floor(Math.random() * 10), 100);
-
-    // Calculate study time this week (based on message activity)
+    // Calculate study time this week (based on quiz attempts and message activity)
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const weeklyQuizzes = quizAttempts.filter(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      (attempt) => attempt.completedAt >= oneWeekAgo,
+    );
     const weeklyMessages = userMessages.filter(
       (m) => m.createdAt >= oneWeekAgo,
     );
-    const studyTimeHours = Math.floor(weeklyMessages.length * 0.5); // Estimate 30 min per message interaction
+
+    // Estimate: 15 min per quiz + 5 min per message interaction
+    const studyTimeHours =
+      Math.round(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        (weeklyQuizzes.length * 0.25 + weeklyMessages.length * 0.08) * 10,
+      ) / 10;
 
     return {
       totalDocuments,
-      quizzesCompleted: Math.floor(totalChats * 0.6), // Estimate some chats resulted in quizzes
-      averageScore,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      quizzesCompleted,
+      averageScore: averageScore || undefined,
       studyTimeHours,
       streak,
     };
   }),
+
+  // Save quiz attempt
+  saveQuizAttempt: protectedProcedure
+    .input(
+      z.object({
+        fileId: z.string(),
+        quizType: z.enum(["MCQ", "SAQ", "LAQ"]),
+        numberOfQuestions: z.number(),
+        score: z.number(),
+        answers: z.any(),
+        title: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      // Create quiz record
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      const quiz = await ctx.db.quiz.create({
+        data: {
+          userId,
+          fileId: input.fileId,
+          title: input.title ?? "Untitled Quiz",
+          quizType: input.quizType,
+          numberOfQuestions: input.numberOfQuestions,
+        },
+      });
+
+      // Create quiz attempt
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      const quizAttempt = await ctx.db.quizAttempt.create({
+        data: {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          quizId: quiz.id,
+          score: input.score,
+          totalQuestions: input.numberOfQuestions,
+          answers: input.answers as Prisma.InputJsonValue,
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      return { quiz, quizAttempt };
+    }),
+
+  // Get recent quiz attempts
+  getRecentQuizzes: protectedProcedure
+    .input(
+      z
+        .object({
+          limit: z.number().optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const limit = input?.limit ?? 5;
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      const recentAttempts = await ctx.db.quizAttempt.findMany({
+        where: {
+          quiz: {
+            userId,
+          },
+        },
+        take: limit,
+        orderBy: {
+          completedAt: "desc",
+        },
+        include: {
+          quiz: {
+            include: {
+              file: true,
+            },
+          },
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      return recentAttempts.map((attempt) => ({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        id: attempt.id,
+        quiz: {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          title: attempt.quiz.title,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          quizType: attempt.quiz.quizType,
+        },
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        score: attempt.score,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        totalQuestions: attempt.totalQuestions,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        completedAt: attempt.completedAt.toISOString(),
+        file: {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          name: attempt.quiz.file.name,
+        },
+      }));
+    }),
 });
 
 // Helper function to calculate consecutive day streak

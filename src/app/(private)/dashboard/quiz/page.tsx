@@ -56,10 +56,31 @@ export default function QuizPage() {
   );
   const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
+  const [quizScore, setQuizScore] = useState<number>(0);
 
   // Fetch user's uploaded documents
   const { data: userDocuments = [], isLoading: isLoadingDocuments } =
     api.chat.listFiles.useQuery();
+
+  // Quiz attempt mutation
+  const saveQuizAttemptMutation = api.chat.saveQuizAttempt.useMutation();
+
+  // Calculate quiz score
+  const calculateScore = () => {
+    let correct = 0;
+    generatedQuestions.forEach((question, index) => {
+      const userAnswer = userAnswers[index];
+      if (userAnswer !== undefined) {
+        // For MCQ, compare the selected option index with correct answer
+        if (question.options && question.options.length > 0) {
+          if (parseInt(userAnswer) === question.correctAnswer) {
+            correct++;
+          }
+        }
+      }
+    });
+    return correct;
+  };
 
   // Auto-select document from URL parameter
   useEffect(() => {
@@ -113,6 +134,7 @@ export default function QuizPage() {
     setQuizType("");
     setNumberOfQuestions("");
     setUserAnswers({});
+    setQuizScore(0);
   };
 
   const currentQ = generatedQuestions[currentQuestion];
@@ -419,7 +441,30 @@ export default function QuizPage() {
                     </Button>
                   ) : (
                     <Button
-                      onClick={() => setStage("result")}
+                      onClick={async () => {
+                        const score = calculateScore();
+                        setQuizScore(score);
+
+                        // Save quiz attempt to database
+                        if (selectedDocument && quizType) {
+                          try {
+                            await saveQuizAttemptMutation.mutateAsync({
+                              fileId: selectedDocument,
+                              quizType: quizType as "MCQ" | "SAQ" | "LAQ",
+                              numberOfQuestions: generatedQuestions.length,
+                              score,
+                              answers: userAnswers,
+                              title: selectedDoc?.name
+                                ? `Quiz: ${selectedDoc.name}`
+                                : "Untitled Quiz",
+                            });
+                          } catch (error) {
+                            console.error("Error saving quiz attempt:", error);
+                          }
+                        }
+
+                        setStage("result");
+                      }}
                       className="flex-1 cursor-pointer bg-blue-600 hover:bg-blue-700"
                     >
                       Submit Quiz
@@ -449,10 +494,10 @@ export default function QuizPage() {
               <CardContent className="p-8">
                 <div className="text-center">
                   <div className="mb-2 text-6xl font-bold text-blue-600">
-                    80%
+                    {Math.round((quizScore / generatedQuestions.length) * 100)}%
                   </div>
                   <p className="text-gray-500 dark:text-gray-400">
-                    4 out of 5 correct
+                    {quizScore} out of {generatedQuestions.length} correct
                   </p>
                 </div>
               </CardContent>
@@ -460,57 +505,68 @@ export default function QuizPage() {
 
             {/* Question Review */}
             <div className="space-y-4">
-              {generatedQuestions.map((q: QuizQuestion, idx: number) => (
-                <Card
-                  key={idx}
-                  className="border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      {idx % 2 === 0 ? (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/50">
-                          <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                        </div>
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-950/50">
-                          <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <p className="mb-3 font-semibold text-gray-900 dark:text-white">
-                          {q.question}
-                        </p>
-                        {q.options && q.options.length > 0 && (
-                          <>
-                            <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
-                              Your answer:{" "}
-                              <span className="font-medium">
-                                {q.options[0]}
-                              </span>
-                            </p>
-                            <p className="mb-3 text-sm text-green-600 dark:text-green-400">
-                              Correct answer:{" "}
-                              <span className="font-medium">
-                                {typeof q.correctAnswer === "number"
-                                  ? q.options[q.correctAnswer]
-                                  : q.correctAnswer}
-                              </span>
-                            </p>
-                          </>
+              {generatedQuestions.map((q: QuizQuestion, idx: number) => {
+                const userAnswer = userAnswers[idx];
+                const isCorrect =
+                  userAnswer !== undefined &&
+                  (q.options && q.options.length > 0
+                    ? parseInt(userAnswer) === q.correctAnswer
+                    : false);
+
+                return (
+                  <Card
+                    key={idx}
+                    className="border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        {isCorrect ? (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/50">
+                            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          </div>
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-950/50">
+                            <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                          </div>
                         )}
-                        <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-950/50">
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                            <span className="font-medium text-blue-600 dark:text-blue-400">
-                              Explanation:{" "}
-                            </span>
-                            {q.explanation}
+                        <div className="flex-1">
+                          <p className="mb-3 font-semibold text-gray-900 dark:text-white">
+                            {q.question}
                           </p>
+                          {q.options && q.options.length > 0 && (
+                            <>
+                              <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
+                                Your answer:{" "}
+                                <span className="font-medium">
+                                  {userAnswer !== undefined
+                                    ? q.options[parseInt(userAnswer)]
+                                    : "Not answered"}
+                                </span>
+                              </p>
+                              <p className="mb-3 text-sm text-green-600 dark:text-green-400">
+                                Correct answer:{" "}
+                                <span className="font-medium">
+                                  {typeof q.correctAnswer === "number"
+                                    ? q.options[q.correctAnswer]
+                                    : q.correctAnswer}
+                                </span>
+                              </p>
+                            </>
+                          )}
+                          <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-950/50">
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                              <span className="font-medium text-blue-600 dark:text-blue-400">
+                                Explanation:{" "}
+                              </span>
+                              {q.explanation}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
             {/* Action Buttons */}
