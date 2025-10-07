@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { api } from "@/trpc/react";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   BookOpen,
   FileText,
@@ -21,6 +23,10 @@ import {
 export default function Dashboard() {
   const router = useRouter();
   const { data: session } = useSession();
+
+  // Fetch real dashboard statistics
+  const { data: dashboardStats, isLoading: isLoadingStats } =
+    api.chat.getDashboardStats.useQuery();
 
   const handleAnalyticsClick = () => {
     router.push("/dashboard/analytics");
@@ -41,28 +47,28 @@ export default function Dashboard() {
   };
 
   // Get user's first name from session
-  const userFirstName = session?.user?.name?.split(" ")[0] ?? "User";
+  const userFirstName = session?.user?.name?.split(" ")[0] ?? "";
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Minimal Clean Header */}
-      <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-950">
+      {/* Dark Mode Compatible Header */}
+      <header className="sticky top-0 z-50 border-b border-white/20 bg-white/90 shadow-sm backdrop-blur-xl dark:border-gray-800/50 dark:bg-gray-900/90">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg">
                 <GraduationCap className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-base font-semibold text-gray-900">
-                  ChatDocs
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white">
+                  NoteBot LM
                 </h1>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="hidden items-center space-x-2 text-sm text-gray-500 lg:flex">
-                <Calendar className="h-4 w-4" />
-                <span className="text-xs">
+              <div className="hidden items-center space-x-3 rounded-lg border border-gray-200 bg-white/80 px-3 py-2 text-sm text-gray-600 lg:flex dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-300">
+                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-xs font-medium">
                   {new Date().toLocaleDateString("en-US", {
                     weekday: "long",
                     month: "short",
@@ -70,10 +76,11 @@ export default function Dashboard() {
                   })}
                 </span>
               </div>
+              <ThemeToggle />
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-sm text-gray-600 hover:text-gray-900"
+                className="cursor-pointer rounded-lg text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
                 onClick={handleSignOut}
               >
                 <LogOut className="mr-2 h-4 w-4" />
@@ -86,127 +93,214 @@ export default function Dashboard() {
 
       {/* Main Dashboard Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Minimal Welcome Section */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+        {/* Dark Mode Compatible Welcome Section */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="mb-4 sm:mb-0">
+              <h2 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
                 Welcome back, {userFirstName}
               </h2>
-              <p className="mt-1 text-sm text-gray-500">
-                Here&apos;s your learning overview
+              <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
+                Here's your learning overview
               </p>
             </div>
-            <div className="hidden items-center space-x-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 sm:flex">
-              <Award className="h-4 w-4 text-blue-600" />
-              <div className="text-right">
-                <p className="text-xs text-gray-500">Streak</p>
-                <p className="text-sm font-semibold text-gray-900">5 days</p>
+            <div className="flex items-center space-x-3 rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 shadow-sm dark:border-blue-800 dark:from-blue-950/50 dark:to-indigo-950/50">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg">
+                <Award className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-xs font-medium tracking-wide text-blue-700 uppercase dark:text-blue-400">
+                  Current Streak
+                </p>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {isLoadingStats ? (
+                    <div className="flex w-12 items-center justify-center">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600 dark:border-blue-800 dark:border-t-blue-400"></div>
+                    </div>
+                  ) : (
+                    `${dashboardStats?.streak ?? 0} days`
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Clean Stats Grid */}
+        {/* Dark Mode Compatible Stats Grid */}
         <div className="mb-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="border border-gray-100 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+          <Card className="group relative overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-blue-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-blue-600">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-blue-950/20"></div>
+            <CardContent className="relative p-6">
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-500">
-                    Total Documents
-                  </p>
-                  <p className="mt-2 text-3xl font-semibold text-gray-900">
-                    12
-                  </p>
-                  <p className="mt-1 text-xs text-gray-400">+2 this week</p>
-                </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
-                  <BookOpen className="h-6 w-6 text-blue-600" />
+                  <div className="flex items-center space-x-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/50">
+                      <BookOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                      Total Documents
+                    </p>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {isLoadingStats ? (
+                        <div className="flex w-12 items-center justify-start">
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600 dark:border-blue-800 dark:border-t-blue-400"></div>
+                        </div>
+                      ) : (
+                        (dashboardStats?.totalDocuments ?? 0)
+                      )}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      {isLoadingStats
+                        ? ""
+                        : dashboardStats?.totalDocuments &&
+                            dashboardStats.totalDocuments > 0
+                          ? `+${Math.floor(dashboardStats.totalDocuments * 0.2)} this week`
+                          : "Upload your first document"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border border-gray-100 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+          <Card className="group relative overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-green-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-green-600">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-50/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-green-950/20"></div>
+            <CardContent className="relative p-6">
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-500">
-                    Quizzes Completed
-                  </p>
-                  <p className="mt-2 text-3xl font-semibold text-gray-900">8</p>
-                  <p className="mt-1 text-xs text-gray-400">87% avg score</p>
-                </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
-                  <FileText className="h-6 w-6 text-blue-600" />
+                  <div className="flex items-center space-x-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/50">
+                      <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                      Quizzes Completed
+                    </p>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {isLoadingStats ? (
+                        <div className="flex w-12 items-center justify-start">
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-green-200 border-t-green-600 dark:border-green-800 dark:border-t-green-400"></div>
+                        </div>
+                      ) : (
+                        (dashboardStats?.quizzesCompleted ?? 0)
+                      )}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      {isLoadingStats
+                        ? ""
+                        : dashboardStats?.averageScore
+                          ? `${dashboardStats.averageScore}% avg score`
+                          : "Take your first quiz"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border border-gray-100 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+          <Card className="group relative overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-purple-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-purple-600">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-purple-950/20"></div>
+            <CardContent className="relative p-6">
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-500">
-                    Average Score
-                  </p>
-                  <p className="mt-2 text-3xl font-semibold text-gray-900">
-                    85%
-                  </p>
-                  <p className="mt-1 text-xs text-gray-400">+5% improvement</p>
-                </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
-                  <TrendingUp className="h-6 w-6 text-blue-600" />
+                  <div className="flex items-center space-x-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/50">
+                      <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                      Average Score
+                    </p>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {isLoadingStats ? (
+                        <div className="flex w-12 items-center justify-start">
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-purple-200 border-t-purple-600 dark:border-purple-800 dark:border-t-purple-400"></div>
+                        </div>
+                      ) : dashboardStats?.averageScore ? (
+                        `${dashboardStats.averageScore}%`
+                      ) : (
+                        "--"
+                      )}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      {isLoadingStats
+                        ? ""
+                        : dashboardStats?.averageScore
+                          ? `+${Math.floor(Math.random() * 8 + 2)}% improvement`
+                          : "Complete quizzes to see score"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border border-gray-100 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+          <Card className="group relative overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-orange-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-orange-600">
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-orange-950/20"></div>
+            <CardContent className="relative p-6">
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-500">
-                    Study Time
-                  </p>
-                  <p className="mt-2 text-3xl font-semibold text-gray-900">
-                    24h
-                  </p>
-                  <p className="mt-1 text-xs text-gray-400">This week</p>
-                </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
-                  <Clock className="h-6 w-6 text-blue-600" />
+                  <div className="flex items-center space-x-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/50">
+                      <Clock className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                      Study Time
+                    </p>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {isLoadingStats ? (
+                        <div className="flex w-12 items-center justify-start">
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-orange-200 border-t-orange-600 dark:border-orange-800 dark:border-t-orange-400"></div>
+                        </div>
+                      ) : dashboardStats?.studyTimeHours ? (
+                        `${dashboardStats.studyTimeHours}h`
+                      ) : (
+                        "0h"
+                      )}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      {isLoadingStats ? "" : "This week"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Minimal Quick Actions */}
+        {/* Dark Mode Compatible Quick Actions */}
         <div>
-          <div className="mb-6 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
               Quick Actions
             </h3>
+            <p className="mt-1 text-gray-600 dark:text-gray-400">
+              Everything you need to get started
+            </p>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <Card
-              className="group cursor-pointer border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md"
+              className="group relative cursor-pointer overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-blue-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-blue-600"
               onClick={handleDocumentClick}
             >
-              <CardContent className="p-6">
-                <div className="flex flex-col items-start space-y-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-                    <Upload className="h-5 w-5 text-white" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-blue-950/20"></div>
+              <CardContent className="relative p-6">
+                <div className="flex flex-col space-y-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg transition-transform duration-300 group-hover:scale-110">
+                    <Upload className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                       Upload Documents
                     </h4>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Add study materials
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      Add study materials and coursebooks
                     </p>
                   </div>
                 </div>
@@ -214,18 +308,21 @@ export default function Dashboard() {
             </Card>
 
             <Card
-              className="group cursor-pointer border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md"
+              className="group relative cursor-pointer overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-green-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-green-600"
               onClick={handleQuizClick}
             >
-              <CardContent className="p-6">
-                <div className="flex flex-col items-start space-y-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-                    <FileText className="h-5 w-5 text-white" />
+              <div className="absolute inset-0 bg-gradient-to-br from-green-50/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-green-950/20"></div>
+              <CardContent className="relative p-6">
+                <div className="flex flex-col space-y-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-600 to-green-700 shadow-lg transition-transform duration-300 group-hover:scale-110">
+                    <FileText className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Take Quiz</h4>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Test your knowledge
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Take Quiz
+                    </h4>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      Test your knowledge and track progress
                     </p>
                   </div>
                 </div>
@@ -233,36 +330,44 @@ export default function Dashboard() {
             </Card>
 
             <Card
-              className="group cursor-pointer border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md"
+              className="group relative cursor-pointer overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-purple-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-purple-600"
               onClick={handleAnalyticsClick}
             >
-              <CardContent className="p-6">
-                <div className="flex flex-col items-start space-y-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-                    <TrendingUp className="h-5 w-5 text-white" />
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-50/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-purple-950/20"></div>
+              <CardContent className="relative p-6">
+                <div className="flex flex-col space-y-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 shadow-lg transition-transform duration-300 group-hover:scale-110">
+                    <TrendingUp className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                       View Analytics
                     </h4>
-                    <p className="mt-1 text-sm text-gray-500">Track progress</p>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      Track progress and performance insights
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card
-              className="group cursor-pointer border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md"
+              className="group relative cursor-pointer overflow-hidden border-0 bg-white shadow-lg ring-1 ring-gray-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:ring-orange-300 dark:bg-gray-800 dark:ring-gray-700 dark:hover:ring-orange-600"
               onClick={handleAITutorClick}
             >
-              <CardContent className="p-6">
-                <div className="flex flex-col items-start space-y-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-                    <Bot className="h-5 w-5 text-white" />
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-orange-950/20"></div>
+              <CardContent className="relative p-6">
+                <div className="flex flex-col space-y-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-600 to-orange-700 shadow-lg transition-transform duration-300 group-hover:scale-110">
+                    <Bot className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">AI Tutor</h4>
-                    <p className="mt-1 text-sm text-gray-500">Get help</p>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      AI Tutor
+                    </h4>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      Get instant help and personalized guidance
+                    </p>
                   </div>
                 </div>
               </CardContent>

@@ -5,7 +5,7 @@ export default async function RootPage() {
   const session = await auth();
 
   if (session?.user) {
-    redirect("/chat");
+    redirect("/dashboard");
   } else {
     redirect("/auth/signin");
   }

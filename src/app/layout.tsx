@@ -6,6 +6,7 @@ import { SessionProvider } from "next-auth/react";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import { AppToaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
   title: "Sage",
@@ -26,15 +27,22 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable}`}>
+    <html lang="en" className={`${inter.variable}`} suppressHydrationWarning>
       <body>
-        <SessionProvider>
-          <TRPCReactProvider>
-            {children}
-            {/* Global toast portal (Sonner) */}
-            <AppToaster />
-          </TRPCReactProvider>
-        </SessionProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SessionProvider>
+            <TRPCReactProvider>
+              {children}
+              {/* Global toast portal (Sonner) */}
+              <AppToaster />
+            </TRPCReactProvider>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

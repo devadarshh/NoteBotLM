@@ -2,6 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
@@ -9,23 +10,28 @@ export default function SignIn() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/" });
+      await signIn("google", { callbackUrl: "/dashboard" });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-950">
+      {/* Theme Toggle */}
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle />
+      </div>
+
       {/* Background decorations */}
       <div className="absolute inset-0">
         {/* Gradient orbs */}
-        <div className="absolute -top-24 -left-24 h-96 w-96 animate-pulse rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="absolute -right-24 -bottom-24 h-96 w-96 animate-pulse rounded-full bg-purple-400/20 blur-3xl" />
+        <div className="absolute -top-24 -left-24 h-96 w-96 animate-pulse rounded-full bg-blue-400/20 blur-3xl dark:bg-blue-600/10" />
+        <div className="absolute -right-24 -bottom-24 h-96 w-96 animate-pulse rounded-full bg-purple-400/20 blur-3xl dark:bg-purple-600/10" />
 
         {/* Grid pattern */}
         <div
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-10 dark:opacity-5"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3e%3cdefs%3e%3cpattern id='grid' width='60' height='60' patternUnits='userSpaceOnUse'%3e%3cpath d='m 60 0 l 0 60 l -60 0 l 0 -60 z' fill='none' stroke='%23000000' stroke-width='1'/%3e%3c/pattern%3e%3c/defs%3e%3crect width='100%25' height='100%25' fill='url(%23grid)' /%3e%3c/svg%3e")`,
           }}
@@ -39,19 +45,19 @@ export default function SignIn() {
             <div className="mb-8 flex items-center justify-center">
               <div className="group relative">
                 {/* Logo with enhanced styling */}
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-2xl shadow-blue-500/25 transition-all duration-300 group-hover:scale-105 group-hover:shadow-blue-500/40">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-2xl shadow-blue-500/25 transition-all duration-300 group-hover:scale-105 group-hover:shadow-blue-500/40 dark:shadow-blue-500/10 dark:group-hover:shadow-blue-500/20">
                   <span className="text-2xl font-bold text-white">S</span>
                 </div>
                 {/* Floating ring animation */}
-                <div className="absolute inset-0 animate-ping rounded-2xl ring-2 ring-blue-400/50" />
+                <div className="absolute inset-0 animate-ping rounded-2xl ring-2 ring-blue-400/50 dark:ring-blue-600/30" />
               </div>
             </div>
 
             <div className="space-y-3">
-              <h1 className="bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 bg-clip-text text-4xl font-bold tracking-tight text-transparent">
+              <h1 className="bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 bg-clip-text text-4xl font-bold tracking-tight text-transparent dark:from-white dark:via-gray-200 dark:to-white">
                 ChatDocs
               </h1>
-              <p className="text-lg leading-relaxed font-medium text-gray-600">
+              <p className="text-lg leading-relaxed font-medium text-gray-600 dark:text-gray-400">
                 AI-Powered Document Intelligence
               </p>
             </div>
@@ -60,14 +66,14 @@ export default function SignIn() {
           {/* Sign in card */}
           <div className="animate-slide-up relative">
             {/* Card glow effect */}
-            <div className="animate-tilt absolute -inset-1 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 opacity-20 blur" />
+            <div className="animate-tilt absolute -inset-1 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 opacity-20 blur dark:opacity-10" />
 
-            <div className="relative rounded-2xl border border-white/50 bg-white/80 p-8 shadow-2xl backdrop-blur-xl">
+            <div className="relative rounded-2xl border border-white/50 bg-white/80 p-8 shadow-2xl backdrop-blur-xl dark:border-gray-700/50 dark:bg-gray-800/80">
               <div className="mb-8 text-center">
-                <h2 className="mb-3 text-2xl font-semibold tracking-tight text-gray-900">
+                <h2 className="mb-3 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
                   Welcome back
                 </h2>
-                <p className="leading-relaxed text-gray-600">
+                <p className="leading-relaxed text-gray-600 dark:text-gray-400">
                   Sign in to continue your document analysis journey
                 </p>
               </div>
@@ -77,16 +83,16 @@ export default function SignIn() {
                 <button
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
-                  className="group relative w-full overflow-hidden rounded-xl border border-gray-200 bg-white px-6 py-4 text-base font-medium text-gray-700 shadow-lg transition-all duration-300 ease-out hover:scale-[1.02] hover:border-gray-300 hover:shadow-xl focus:border-blue-300 focus:ring-4 focus:ring-blue-500/25 focus:outline-none disabled:transform-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:shadow-lg"
+                  className="group relative w-full overflow-hidden rounded-xl border border-gray-200 bg-white px-6 py-4 text-base font-medium text-gray-700 shadow-lg transition-all duration-300 ease-out hover:scale-[1.02] hover:border-gray-300 hover:shadow-xl focus:border-blue-300 focus:ring-4 focus:ring-blue-500/25 focus:outline-none disabled:transform-none disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:shadow-lg dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:border-gray-500 dark:focus:border-blue-600 dark:focus:ring-blue-500/20"
                   aria-label="Sign in with Google to access Sage"
                 >
                   {/* Button shine effect */}
-                  <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                  <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full dark:via-gray-200/10" />
 
                   <div className="relative flex items-center justify-center">
                     {isLoading ? (
                       <div className="flex items-center justify-center space-x-3">
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400" />
                         <span className="font-medium">Signing in...</span>
                       </div>
                     ) : (
@@ -122,15 +128,15 @@ export default function SignIn() {
                 </button>
 
                 {/* Additional features section */}
-                <div className="border-t border-gray-100 pt-6">
-                  <p className="mb-4 text-center text-xs font-medium tracking-wide text-gray-500 uppercase">
+                <div className="border-t border-gray-100 pt-6 dark:border-gray-700">
+                  <p className="mb-4 text-center text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                     Why Choose Sage
                   </p>
-                  <div className="grid grid-cols-3 gap-6 text-center text-xs text-gray-600">
+                  <div className="grid grid-cols-3 gap-6 text-center text-xs text-gray-600 dark:text-gray-400">
                     <div className="group flex cursor-default flex-col items-center space-y-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 transition-all duration-200 group-hover:scale-105 group-hover:bg-blue-100 group-hover:shadow-sm">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 transition-all duration-200 group-hover:scale-105 group-hover:bg-blue-100 group-hover:shadow-sm dark:bg-blue-950/50 dark:group-hover:bg-blue-900/50">
                         <svg
-                          className="h-5 w-5 text-blue-600"
+                          className="h-5 w-5 text-blue-600 dark:text-blue-400"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -144,14 +150,14 @@ export default function SignIn() {
                           />
                         </svg>
                       </div>
-                      <span className="font-medium transition-colors duration-200 group-hover:text-blue-600">
+                      <span className="font-medium transition-colors duration-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                         Secure
                       </span>
                     </div>
                     <div className="group flex cursor-default flex-col items-center space-y-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 transition-all duration-200 group-hover:scale-105 group-hover:bg-green-100 group-hover:shadow-sm">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 transition-all duration-200 group-hover:scale-105 group-hover:bg-green-100 group-hover:shadow-sm dark:bg-green-950/50 dark:group-hover:bg-green-900/50">
                         <svg
-                          className="h-5 w-5 text-green-600"
+                          className="h-5 w-5 text-green-600 dark:text-green-400"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -165,14 +171,14 @@ export default function SignIn() {
                           />
                         </svg>
                       </div>
-                      <span className="font-medium transition-colors duration-200 group-hover:text-green-600">
+                      <span className="font-medium transition-colors duration-200 group-hover:text-green-600 dark:group-hover:text-green-400">
                         Fast AI
                       </span>
                     </div>
                     <div className="group flex cursor-default flex-col items-center space-y-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 transition-all duration-200 group-hover:scale-105 group-hover:bg-purple-100 group-hover:shadow-sm">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 transition-all duration-200 group-hover:scale-105 group-hover:bg-purple-100 group-hover:shadow-sm dark:bg-purple-950/50 dark:group-hover:bg-purple-900/50">
                         <svg
-                          className="h-5 w-5 text-purple-600"
+                          className="h-5 w-5 text-purple-600 dark:text-purple-400"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -186,7 +192,7 @@ export default function SignIn() {
                           />
                         </svg>
                       </div>
-                      <span className="font-medium transition-colors duration-200 group-hover:text-purple-600">
+                      <span className="font-medium transition-colors duration-200 group-hover:text-purple-600 dark:group-hover:text-purple-400">
                         Smart
                       </span>
                     </div>
@@ -197,12 +203,12 @@ export default function SignIn() {
           </div>
 
           {/* Footer text */}
-          <div className="animate-fade-in-delayed text-center text-sm text-gray-500">
+          <div className="animate-fade-in-delayed text-center text-sm text-gray-500 dark:text-gray-400">
             <p className="leading-relaxed">
               By signing in, you agree to our{" "}
               <a
                 href="#"
-                className="rounded-sm font-medium text-blue-600 transition-all duration-200 hover:text-blue-700 hover:underline focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2 focus:outline-none"
+                className="rounded-sm font-medium text-blue-600 transition-all duration-200 hover:text-blue-700 hover:underline focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2 focus:outline-none dark:text-blue-400 dark:hover:text-blue-300 dark:focus:ring-blue-500/30 dark:focus:ring-offset-gray-800"
                 aria-label="View Terms of Service"
               >
                 Terms of Service
@@ -210,7 +216,7 @@ export default function SignIn() {
               and{" "}
               <a
                 href="#"
-                className="rounded-sm font-medium text-blue-600 transition-all duration-200 hover:text-blue-700 hover:underline focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2 focus:outline-none"
+                className="rounded-sm font-medium text-blue-600 transition-all duration-200 hover:text-blue-700 hover:underline focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2 focus:outline-none dark:text-blue-400 dark:hover:text-blue-300 dark:focus:ring-blue-500/30 dark:focus:ring-offset-gray-800"
                 aria-label="View Privacy Policy"
               >
                 Privacy Policy

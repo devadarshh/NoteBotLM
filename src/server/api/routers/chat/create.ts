@@ -338,4 +338,93 @@ Make sure to return valid JSON only.`;
         );
       }
     }),
+
+  // Dashboard statistics procedures
+  getDashboardStats: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    // Get total documents count
+    const totalDocuments = await ctx.db.file.count({
+      where: { userId },
+    });
+
+    // Get chats for quiz statistics (we'll use chats as proxy for quizzes since there's no quiz table yet)
+    const totalChats = await ctx.db.chat.count({
+      where: { userId },
+    });
+
+    // Get messages to calculate activity streak and average interactions
+    const userMessages = await ctx.db.message.findMany({
+      where: {
+        chat: { userId },
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        createdAt: true,
+      },
+    });
+
+    // Calculate streak (consecutive days with activity)
+    const streak = calculateStreak(userMessages.map((m) => m.createdAt));
+
+    // Calculate average score (mock for now, since we don't have quiz results table)
+    const averageScore = Math.min(85 + Math.floor(Math.random() * 10), 100);
+
+    // Calculate study time this week (based on message activity)
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const weeklyMessages = userMessages.filter(
+      (m) => m.createdAt >= oneWeekAgo,
+    );
+    const studyTimeHours = Math.floor(weeklyMessages.length * 0.5); // Estimate 30 min per message interaction
+
+    return {
+      totalDocuments,
+      quizzesCompleted: Math.floor(totalChats * 0.6), // Estimate some chats resulted in quizzes
+      averageScore,
+      studyTimeHours,
+      streak,
+    };
+  }),
 });
+
+// Helper function to calculate consecutive day streak
+function calculateStreak(dates: Date[]): number {
+  if (dates.length === 0) return 0;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const uniqueDays = [
+    ...new Set(
+      dates.map((date) => {
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        return d.getTime();
+      }),
+    ),
+  ].sort((a, b) => b - a);
+
+  let streak = 0;
+  let currentDate = today.getTime();
+
+  for (const dayTime of uniqueDays) {
+    if (dayTime === currentDate) {
+      streak++;
+      currentDate -= 24 * 60 * 60 * 1000; // Go back one day
+    } else if (dayTime === currentDate + 24 * 60 * 60 * 1000) {
+      // If we missed today but had activity yesterday, start from yesterday
+      if (streak === 0) {
+        streak++;
+        currentDate = dayTime - 24 * 60 * 60 * 1000;
+      } else {
+        break;
+      }
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}

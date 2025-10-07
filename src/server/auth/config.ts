@@ -32,10 +32,12 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
-  providers: [GoogleProvider({
-    clientId: env.GOOGLE_CLIENT_ID,
-    clientSecret: env.GOOGLE_CLIENT_SECRET,
-  })],
+  providers: [
+    GoogleProvider({
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+    }),
+  ],
   adapter: PrismaAdapter(db),
   pages: {
     signIn: "/auth/signin",
@@ -48,5 +50,17 @@ export const authConfig = {
         id: user.id,
       },
     }),
+    redirect: ({ url, baseUrl }) => {
+      // Redirect to dashboard after sign in
+      if (url.startsWith("/") && !url.startsWith("//")) {
+        return `${baseUrl}/dashboard`;
+      }
+      // Allow same-origin relative callback URLs
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+      // Default to dashboard for external URLs
+      return `${baseUrl}/dashboard`;
+    },
   },
 } satisfies NextAuthConfig;

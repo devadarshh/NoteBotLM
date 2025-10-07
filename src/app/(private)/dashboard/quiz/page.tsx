@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -19,9 +20,13 @@ import {
   CheckCircle2,
   XCircle,
   RefreshCw,
+  GraduationCap,
+  Calendar,
+  LogOut,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { api } from "@/trpc/react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface QuizQuestion {
   question: string;
@@ -33,6 +38,11 @@ interface QuizQuestion {
 
 export default function QuizPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+
+  const handleSignOut = () => {
+    void signOut({ callbackUrl: "/auth/signin" });
+  };
   const [stage, setStage] = useState<"generate" | "quiz" | "result">(
     "generate",
   );
@@ -115,22 +125,55 @@ export default function QuizPage() {
     generatedQuestions.length > 0 ? generatedQuestions : mockQuestions;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Minimal Clean Header - Matching Dashboard */}
-      <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md dark:border-gray-700 dark:bg-gray-900/80">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center">
-            <Button
-              variant="ghost"
-              onClick={() => router.push("/dashboard")}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Button>
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
+                <GraduationCap className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-base font-semibold text-gray-900 dark:text-white">
+                  ChatDocs
+                </h1>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                onClick={() => router.push("/dashboard")}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Back to Dashboard</span>
+              </Button>
+              <div className="hidden items-center space-x-2 text-sm text-gray-500 lg:flex dark:text-gray-400">
+                <Calendar className="h-4 w-4" />
+                <span className="text-xs">
+                  {new Date().toLocaleDateString("en-US", {
+                    weekday: "long",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
+              </div>
+              <ThemeToggle />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                onClick={handleSignOut}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </Button>
+            </div>
           </div>
         </div>
-      </nav>
+      </header>
 
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         {/* -------------------- Generate Quiz Section -------------------- */}
@@ -138,25 +181,25 @@ export default function QuizPage() {
           <div className="space-y-6">
             {/* Page Header */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
                 Generate Quiz
               </h1>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Create AI-powered quizzes from your coursebooks
               </p>
             </div>
 
-            <Card className="border border-gray-100 bg-white shadow-sm">
+            <Card className="border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
               <CardContent className="space-y-6 p-6">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Select Document
                   </Label>
                   <Select
                     value={selectedDocument}
                     onValueChange={setSelectedDocument}
                   >
-                    <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
+                    <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                       <SelectValue
                         placeholder={
                           isLoadingDocuments
@@ -199,11 +242,11 @@ export default function QuizPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Quiz Type
                   </Label>
                   <Select value={quizType} onValueChange={setQuizType}>
-                    <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
+                    <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -215,14 +258,14 @@ export default function QuizPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Number of Questions
                   </Label>
                   <Select
                     value={numberOfQuestions}
                     onValueChange={setNumberOfQuestions}
                   >
-                    <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500">
+                    <SelectTrigger className="border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                       <SelectValue placeholder="Select number" />
                     </SelectTrigger>
                     <SelectContent>
@@ -234,12 +277,12 @@ export default function QuizPage() {
                 </div>
 
                 {selectedDoc && (
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-                    <p className="text-sm text-blue-800">
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-700 dark:bg-blue-950/50">
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
                       <span className="font-medium">Selected Document:</span>{" "}
                       {selectedDoc.name}
                     </p>
-                    <p className="text-xs text-blue-600">
+                    <p className="text-xs text-blue-600 dark:text-blue-300">
                       {(selectedDoc.size / 1024 / 1024).toFixed(1)} MB •
                       Uploaded{" "}
                       {new Date(selectedDoc.createdAt).toLocaleDateString()}
@@ -274,20 +317,20 @@ export default function QuizPage() {
 
                 {userDocuments.length === 0 && !isLoadingDocuments ? (
                   <div className="text-center">
-                    <p className="mb-2 text-sm text-amber-600">
+                    <p className="mb-2 text-sm text-amber-600 dark:text-amber-400">
                       No documents found. Please upload documents first to
                       generate quizzes.
                     </p>
                     <Button
                       variant="outline"
                       onClick={() => router.push("/dashboard/documents")}
-                      className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                      className="border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/50"
                     >
                       Upload Documents
                     </Button>
                   </div>
                 ) : !selectedDocument || !quizType || !numberOfQuestions ? (
-                  <p className="text-center text-sm text-gray-400">
+                  <p className="text-center text-sm text-gray-400 dark:text-gray-500">
                     Please select a document, quiz type, and number of questions
                     to generate quiz
                   </p>
@@ -303,21 +346,23 @@ export default function QuizPage() {
             {/* Progress Header */}
             <div className="mb-8 flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
                   Question {currentQuestion + 1} of {questionsToShow.length}
                 </h1>
-                <p className="mt-1 text-sm text-gray-500">{currentQ?.topic}</p>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {currentQ?.topic}
+                </p>
               </div>
-              <div className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2">
-                <span className="text-sm font-semibold text-gray-900">
+              <div className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 dark:border-gray-600 dark:bg-gray-700">
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
                   {currentQuestion + 1}/{mockQuestions.length}
                 </span>
               </div>
             </div>
 
-            <Card className="border border-gray-100 bg-white shadow-sm">
+            <Card className="border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
               <CardContent className="space-y-6 p-6">
-                <p className="text-lg font-medium text-gray-900">
+                <p className="text-lg font-medium text-gray-900 dark:text-white">
                   {currentQ?.question}
                 </p>
 
@@ -326,16 +371,16 @@ export default function QuizPage() {
                     {currentQ.options?.map((option: string, idx: number) => (
                       <div
                         key={idx}
-                        className="flex items-center space-x-3 rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-blue-200 hover:bg-blue-50/50"
+                        className="flex items-center space-x-3 rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-blue-200 hover:bg-blue-50/50 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-blue-500 dark:hover:bg-blue-950/50"
                       >
                         <RadioGroupItem
                           value={idx.toString()}
                           id={`option-${idx}`}
-                          className="border-gray-300"
+                          className="border-gray-300 dark:border-gray-500"
                         />
                         <Label
                           htmlFor={`option-${idx}`}
-                          className="flex-1 cursor-pointer text-gray-700"
+                          className="flex-1 cursor-pointer text-gray-700 dark:text-gray-300"
                         >
                           {option}
                         </Label>
@@ -346,7 +391,7 @@ export default function QuizPage() {
                   <Textarea
                     placeholder="Type your answer here..."
                     rows={6}
-                    className="resize-none border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    className="resize-none border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   />
                 )}
 
@@ -357,7 +402,7 @@ export default function QuizPage() {
                       setCurrentQuestion(Math.max(0, currentQuestion - 1))
                     }
                     disabled={currentQuestion === 0}
-                    className="border-gray-200 text-gray-700 hover:bg-gray-50"
+                    className="border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                   >
                     Previous
                   </Button>
@@ -387,22 +432,24 @@ export default function QuizPage() {
           <div className="space-y-6">
             {/* Results Header */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
                 Quiz Results
               </h1>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Here&apos;s how you performed
               </p>
             </div>
 
             {/* Score Card */}
-            <Card className="border border-gray-100 bg-white shadow-sm">
+            <Card className="border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
               <CardContent className="p-8">
                 <div className="text-center">
                   <div className="mb-2 text-6xl font-bold text-blue-600">
                     80%
                   </div>
-                  <p className="text-gray-500">4 out of 5 correct</p>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    4 out of 5 correct
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -412,32 +459,32 @@ export default function QuizPage() {
               {questionsToShow.map((q: QuizQuestion, idx: number) => (
                 <Card
                   key={idx}
-                  className="border border-gray-100 bg-white shadow-sm"
+                  className="border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
                 >
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
                       {idx % 2 === 0 ? (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
-                          <CheckCircle2 className="h-5 w-5 text-green-600" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/50">
+                          <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
                         </div>
                       ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50">
-                          <XCircle className="h-5 w-5 text-red-600" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-950/50">
+                          <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
                         </div>
                       )}
                       <div className="flex-1">
-                        <p className="mb-3 font-semibold text-gray-900">
+                        <p className="mb-3 font-semibold text-gray-900 dark:text-white">
                           {q.question}
                         </p>
                         {q.options && q.options.length > 0 && (
                           <>
-                            <p className="mb-1 text-sm text-gray-500">
+                            <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
                               Your answer:{" "}
                               <span className="font-medium">
                                 {q.options[0]}
                               </span>
                             </p>
-                            <p className="mb-3 text-sm text-green-600">
+                            <p className="mb-3 text-sm text-green-600 dark:text-green-400">
                               Correct answer:{" "}
                               <span className="font-medium">
                                 {typeof q.correctAnswer === "number"
@@ -447,9 +494,9 @@ export default function QuizPage() {
                             </p>
                           </>
                         )}
-                        <div className="rounded-lg bg-blue-50 p-3">
-                          <p className="text-sm text-gray-700">
-                            <span className="font-medium text-blue-600">
+                        <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-950/50">
+                          <p className="text-sm text-gray-700 dark:text-gray-300">
+                            <span className="font-medium text-blue-600 dark:text-blue-400">
                               Explanation:{" "}
                             </span>
                             {q.explanation}
@@ -474,7 +521,7 @@ export default function QuizPage() {
               <Button
                 variant="outline"
                 onClick={() => router.push("/dashboard")}
-                className="border-gray-200 text-gray-700 hover:bg-gray-50"
+                className="border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 Back to Dashboard
               </Button>
