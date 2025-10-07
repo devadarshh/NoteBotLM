@@ -20,6 +20,12 @@ import {
 export default function Dashboard() {
   const router = useRouter();
 
+  const handleQuizClick = () => {
+    router.push("/dashboard/quiz");
+  };
+  const handleDocumentClick = () => {
+    router.push("/dashboard/documents");
+  };
   const handleAITutorClick = () => {
     router.push("/chat");
   };
@@ -172,7 +178,10 @@ export default function Dashboard() {
             </h3>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="group cursor-pointer border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md">
+            <Card
+              className="group cursor-pointer border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md"
+              onClick={handleDocumentClick}
+            >
               <CardContent className="p-6">
                 <div className="flex flex-col items-start space-y-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
@@ -190,7 +199,10 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="group cursor-pointer border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md">
+            <Card
+              className="group cursor-pointer border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md"
+              onClick={handleQuizClick}
+            >
               <CardContent className="p-6">
                 <div className="flex flex-col items-start space-y-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
