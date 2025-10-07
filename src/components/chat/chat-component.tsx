@@ -330,10 +330,9 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                                                 })
                                               }
                                             >
-                                              {String(children).replace(
-                                                /[\[\]]/g,
-                                                "",
-                                              )}
+                                              {typeof children === 'string' || typeof children === 'number' 
+                                                ? String(children).replace(/[\[\]]/g, "")
+                                                : children}
                                             </span>
                                           </TooltipTrigger>
                                           <TooltipContent className="citation-tooltip max-w-sm p-3 text-sm">

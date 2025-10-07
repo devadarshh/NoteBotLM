@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, GraduationCap } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -23,17 +23,19 @@ interface ChatSidebarProps {
 
 export function ChatSidebar({ user }: ChatSidebarProps) {
   return (
-    <Sidebar collapsible="icon" className="bg-sidebar w-64 border-r">
+    <Sidebar
+      collapsible="icon"
+      className="w-64 border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
+    >
       <SidebarHeader className="p-6 pb-4 group-data-[collapsible=icon]:p-2">
         <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center">
           <div className="flex items-center space-x-3 group-data-[collapsible=icon]:space-x-0">
-            <div className="bg-primary flex h-7 w-7 items-center justify-center rounded group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8">
-              <span className="text-primary-foreground text-sm font-semibold">
-                N
-              </span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8">
+              <GraduationCap className="h-4 w-4 text-white group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
             </div>
-            <span className="text-sidebar-foreground text-base font-medium group-data-[collapsible=icon]:hidden">
-              NoteBotLM
+            <span className="text-base font-bold text-gray-900 group-data-[collapsible=icon]:hidden dark:text-white">
+              NoteBot{" "}
+              <span className="text-blue-600 dark:text-blue-400">LM</span>
             </span>
           </div>
           <div className="group-data-[collapsible=icon]:hidden"></div>
@@ -44,7 +46,7 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
         <div className="mb-6 group-data-[collapsible=icon]:mb-4">
           <Button
             asChild
-            className="bg-primary text-primary-foreground hover:bg-primary/90 w-full justify-start gap-2 rounded-lg px-4 py-4 text-sm transition-all group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
+            className="w-full justify-start gap-2 rounded-lg bg-blue-600 px-4 py-4 text-sm text-white transition-all group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
             size="sm"
           >
             <Link
@@ -64,7 +66,7 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
         </div>
       </SidebarContent>
 
-      <SidebarFooter className="border-sidebar-border border-t px-3 py-2 group-data-[collapsible=icon]:p-2">
+      <SidebarFooter className="border-t border-gray-200 px-3 py-2 group-data-[collapsible=icon]:p-2 dark:border-gray-800">
         <div className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
           <UserMenu user={user} />
         </div>

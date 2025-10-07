@@ -1,28 +1,46 @@
+"use client";
 
+import { use } from "react";
+import { useRouter } from "next/navigation";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ChatComponent } from "@/components/chat/chat-component";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 interface ChatPageProps {
   params: Promise<{ chatId: string }>;
 }
 
-export default async function ChatPage({ params }: ChatPageProps) {
-  const resolvedParams = await params;
+export default function ChatPage({ params }: ChatPageProps) {
+  const resolvedParams = use(params);
+  const router = useRouter();
+
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden">
       {/* Header with sidebar trigger */}
-      <header className="flex items-center h-16 px-4 border-b">
+      <header className="flex h-16 items-center border-b px-4">
         <SidebarTrigger />
         <div className="ml-2">
           <h1 className="text-lg font-semibold">Chat</h1>
         </div>
+
+        <div className="ml-auto flex items-center space-x-3">
+          <Button
+            variant="ghost"
+            onClick={() => router.push("/dashboard")}
+            className="cursor-pointer text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Dashboard
+          </Button>
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Main Chat Area */}
-      <div className="flex-1 min-h-0 flex flex-col">
-        <ChatComponent 
-          chatId={resolvedParams.chatId} 
-        />
+      <div className="flex min-h-0 flex-1 flex-col">
+        <ChatComponent chatId={resolvedParams.chatId} />
       </div>
     </div>
   );

@@ -97,7 +97,7 @@ export function ChatList() {
   if (error) {
     return (
       <ScrollArea className="flex-1">
-        <div className="px-2 py-4 text-center text-sm text-gray-500">
+        <div className="px-2 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
           Failed to load chats
         </div>
       </ScrollArea>
@@ -107,7 +107,7 @@ export function ChatList() {
   if (!chats || chats.length === 0) {
     return (
       <ScrollArea className="flex-1">
-        <div className="px-2 py-4 text-center text-sm text-gray-500">
+        <div className="px-2 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
           No chats yet. Start a new conversation!
         </div>
       </ScrollArea>
@@ -122,7 +122,7 @@ export function ChatList() {
         {sections.map((section) => (
           <div key={section.title}>
             <div className="px-2 pt-3 pb-2 first:pt-0">
-              <h3 className="text-xs font-medium tracking-wider text-gray-500 uppercase">
+              <h3 className="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {section.title}
               </h3>
             </div>
@@ -134,9 +134,9 @@ export function ChatList() {
                 className={cn(
                   "relative h-auto w-full justify-start px-3 py-2.5 text-left font-normal",
                   "rounded-md text-sm text-gray-700 transition-colors duration-150",
-                  "hover:bg-blue-50 hover:ring-1 hover:ring-blue-200",
+                  "hover:bg-blue-50 hover:text-gray-900 hover:ring-1 hover:ring-blue-200 dark:text-gray-300 dark:hover:bg-blue-950/50 dark:hover:text-white dark:hover:ring-blue-800",
                   currentChatId === chat.id &&
-                    "bg-blue-50 text-gray-900 ring-1 ring-blue-200",
+                    "bg-blue-50 text-gray-900 ring-1 ring-blue-200 dark:bg-blue-950/50 dark:text-white dark:ring-blue-800",
                 )}
                 size="sm"
               >
@@ -144,11 +144,11 @@ export function ChatList() {
                   <div className="truncate group-data-[collapsible=icon]:hidden">
                     {chat.title ?? "New Chat"}
                   </div>
-                  <div className="mt-0.5 text-xs text-gray-500 group-data-[collapsible=icon]:hidden">
+                  <div className="mt-0.5 text-xs text-gray-500 group-data-[collapsible=icon]:hidden dark:text-gray-400">
                     {formatRelativeTime(new Date(chat.updatedAt))}
                   </div>
                   {/* Show a dot indicator when collapsed */}
-                  <div className="hidden h-2 w-2 rounded-full bg-blue-600 group-data-[collapsible=icon]:block" />
+                  <div className="hidden h-2 w-2 rounded-full bg-blue-600 group-data-[collapsible=icon]:block dark:bg-blue-400" />
                 </Link>
               </Button>
             ))}
