@@ -191,13 +191,10 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
           <div className="flex h-full min-h-0 flex-col">
             <ScrollArea className="min-h-0 flex-1 p-4" ref={scrollAreaRef}>
               {messages.length === 0 ? (
-                <div className="flex h-full flex-col items-center justify-center text-center">
-                  <h1 className="mb-3 text-2xl font-light text-gray-900 dark:text-white">
-                    Ask me anything
+                <div className="flex h-full w-full flex-col items-center justify-center text-center">
+                  <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
+                    What would you like to research?
                   </h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Your AI research assistant is ready to help
-                  </p>
                 </div>
               ) : (
                 <div className="mx-auto max-w-4xl space-y-4">
@@ -377,9 +374,6 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                                 style={{ animationDelay: "300ms" }}
                               ></div>
                             </div>
-                            <span className="text-muted-foreground text-sm">
-                              Thinking...
-                            </span>
                           </div>
                         </div>
                       </div>
