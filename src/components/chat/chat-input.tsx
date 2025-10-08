@@ -115,16 +115,16 @@ export function ChatInput({
     setUploadedFiles((prev) => prev.filter((file) => file.id !== fileId));
   };
   return (
-    <div className="bg-background p-4">
+    <div className="border-t border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-black">
       <div className="mx-auto max-w-4xl">
         {uploadedFiles.length > 0 && (
           <div className="mb-4 flex flex-wrap gap-2">
             {uploadedFiles.map((file) => (
               <div
                 key={file.id}
-                className="relative flex items-center space-x-3 rounded-2xl border border-gray-200 bg-white p-3 pr-8 shadow-sm"
+                className="relative flex items-center space-x-3 rounded-xl border border-gray-200 bg-gray-50 p-3 pr-8 shadow-sm dark:border-gray-700 dark:bg-gray-800"
               >
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-600">
                   {file.isUploading ? (
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : (
@@ -142,31 +142,33 @@ export function ChatInput({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="max-w-[200px] truncate text-sm font-medium text-gray-900">
+                  <p className="max-w-[200px] truncate text-sm font-medium text-gray-900 dark:text-white">
                     {file.name}
                   </p>
-                  <p className="text-xs text-gray-500">PDF</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    PDF
+                  </p>
                 </div>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute top-1 right-1 h-6 w-6 rounded-full border border-gray-200 bg-white hover:bg-gray-100"
+                  className="absolute top-1 right-1 h-6 w-6 rounded-full border border-gray-300 bg-white hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600"
                   onClick={() => removeFile(file.id)}
                 >
-                  <XIcon className="h-3 w-3 text-gray-600" />
+                  <XIcon className="h-3 w-3 text-gray-600 dark:text-gray-300" />
                 </Button>
               </div>
             ))}
           </div>
         )}
         <form onSubmit={handleSubmit} className="relative">
-          <div className="bg-muted/50 flex items-center space-x-2 rounded-full border border-gray-200 p-2 transition-colors focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-200/60 hover:border-blue-300">
+          <div className="flex items-center space-x-2 rounded-2xl p-1 transition-all duration-200">
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="relative h-8 w-8 flex-shrink-0 cursor-pointer rounded-full text-gray-700 transition-colors duration-150 hover:bg-blue-50 hover:ring-1 hover:ring-blue-200 focus-visible:ring-2 focus-visible:ring-blue-400/40 focus-visible:outline-none"
+              className="h-9 w-9 flex-shrink-0 cursor-pointer rounded-xl text-gray-600 transition-all duration-200 hover:bg-gray-100 hover:text-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:focus-visible:ring-blue-400/40"
               disabled={disabled}
               onClick={handleFileSelect}
             >
@@ -183,12 +185,12 @@ export function ChatInput({
 
             <Input
               type="text"
-              placeholder="Ask anything"
+              placeholder="Ask anything..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={disabled}
-              className="placeholder:text-muted-foreground/70 flex-1 border-0 bg-transparent px-2 focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="flex-1 border-0 bg-transparent px-2 text-gray-900 placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 dark:text-white dark:placeholder:text-gray-400"
             />
 
             <div className="flex flex-shrink-0 items-center space-x-1">
@@ -196,7 +198,7 @@ export function ChatInput({
                 type="submit"
                 variant="ghost"
                 size="icon"
-                className="relative h-8 w-8 cursor-pointer rounded-full text-gray-700 transition-colors duration-150 hover:bg-blue-50 hover:ring-1 hover:ring-blue-200 focus-visible:ring-2 focus-visible:ring-blue-400/40 focus-visible:outline-none disabled:opacity-50"
+                className="h-9 w-9 cursor-pointer rounded-xl text-gray-600 transition-all duration-200 hover:bg-gray-100 hover:text-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:outline-none disabled:opacity-50 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100 dark:focus-visible:ring-blue-400/40"
                 disabled={
                   disabled ||
                   !input.trim() ||

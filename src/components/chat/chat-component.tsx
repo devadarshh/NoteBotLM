@@ -192,18 +192,11 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
             <ScrollArea className="min-h-0 flex-1 p-4" ref={scrollAreaRef}>
               {messages.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center">
-                  <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                    <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
-                      <span className="text-primary-foreground text-sm font-bold">
-                        N
-                      </span>
-                    </div>
-                  </div>
-                  <h2 className="mb-2 text-lg font-semibold">
-                    Welcome to NoteBotLM
-                  </h2>
-                  <p className="text-muted-foreground">
-                    Start a conversation with your AI research assistant
+                  <h1 className="mb-3 text-2xl font-light text-gray-900 dark:text-white">
+                    Ask me anything
+                  </h1>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Your AI research assistant is ready to help
                   </p>
                 </div>
               ) : (

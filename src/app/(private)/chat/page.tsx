@@ -13,17 +13,18 @@ export default function ChatPage() {
   return (
     <div className="bg-background flex h-screen flex-col">
       {/* Header with sidebar trigger */}
-      <header className="border-border bg-card flex h-16 items-center border-b px-4">
+      <header className="border-border bg-card flex h-12 items-center border-b px-3">
         <SidebarTrigger className="cursor-pointer" />
 
-        <div className="ml-auto flex items-center space-x-3">
+        <div className="ml-auto flex items-center space-x-2">
           <Button
             variant="ghost"
+            size="sm"
             onClick={() => router.push("/dashboard")}
             className="cursor-pointer text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            <span className="hidden sm:inline">Dashboard</span>
           </Button>
           <ThemeToggle />
         </div>
