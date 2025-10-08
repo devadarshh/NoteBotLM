@@ -147,7 +147,6 @@ export function ChatList() {
                   <div className="mt-0.5 text-xs text-gray-500 group-data-[collapsible=icon]:hidden dark:text-gray-400">
                     {formatRelativeTime(new Date(chat.updatedAt))}
                   </div>
-                  {/* Show a dot indicator when collapsed */}
                   <div className="hidden h-2 w-2 rounded-full bg-blue-600 group-data-[collapsible=icon]:block dark:bg-blue-400" />
                 </Link>
               </Button>

@@ -99,7 +99,6 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
     },
     onFinish: () => {
       void utils.chat.getById.invalidate();
-      // Clear the last submitted files when response is complete
       setLastSubmittedFiles([]);
     },
   });
@@ -120,7 +119,6 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
 
   const isLoading = status === "submitted" || status === "streaming";
 
-  // Check if we have any assistant response content
   const lastMessage = messages[messages.length - 1];
   const hasResponseContent =
     lastMessage?.role === "assistant" &&
@@ -128,7 +126,6 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
       (part) => part.type === "text" && part.text && part.text.length > 0,
     );
 
-  // Show loading when submitted or streaming but no content yet
   const isWaitingForResponse =
     (status === "submitted" || status === "streaming") && !hasResponseContent;
 
@@ -169,16 +166,13 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
   const handleMessageSubmit = async (messageText: string) => {
     if (!messageText.trim() || isLoading) return;
 
-    // Get all uploaded file IDs (excluding files that are still uploading)
     const fileIds = uploadedFiles
       .filter((file) => !file.isUploading)
       .map((file) => file.id);
 
-    // Store the files that are being submitted so they can be shown during loading
     const filesToSubmit = uploadedFiles.filter((file) => !file.isUploading);
     setLastSubmittedFiles(filesToSubmit);
 
-    // Clear uploaded files immediately before sending
     setUploadedFiles([]);
 
     await sendMessage({ text: messageText }, { body: { fileIds } });
@@ -199,12 +193,10 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
               ) : (
                 <div className="mx-auto max-w-4xl space-y-4">
                   {messages.map((message, index) => {
-                    // Find the corresponding message data from chatData to get files
                     const messageData = chatData?.messages.find(
                       (msg) => msg.id === message.id,
                     );
 
-                    // For new messages (not yet in DB), show files appropriately
                     const isNewMessage = !messageData;
                     const isLastUserMessage =
                       message.role === "user" && index === messages.length - 2;
@@ -215,11 +207,8 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                     }> = [];
 
                     if (messageData?.messageFiles) {
-                      // Message from DB - use its associated files
                       filesToDisplay = messageData.messageFiles;
                     } else if (isNewMessage && message.role === "user") {
-                      // For new user messages, show the submitted files during loading
-                      // or current uploaded files if not loading
                       if (isLoading && lastSubmittedFiles.length > 0) {
                         filesToDisplay = lastSubmittedFiles.map((f) => ({
                           file: { id: f.id, name: f.name },

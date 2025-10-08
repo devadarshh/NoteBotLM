@@ -115,13 +115,12 @@ export async function POST(req: NextRequest) {
       currentChatId = chat.id;
     }
 
-    // Validate that all fileIds exist before creating the message
     let validFileIds: string[] = [];
     if (fileIds && fileIds.length > 0) {
       const existingFiles = await db.file.findMany({
         where: {
           id: { in: fileIds },
-          userId: session.user.id, // Ensure files belong to the user
+          userId: session.user.id, 
         },
         select: { id: true },
       });

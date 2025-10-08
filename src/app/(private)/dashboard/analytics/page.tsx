@@ -30,15 +30,12 @@ const ProgressPage = () => {
     void signOut({ callbackUrl: "/auth/signin" });
   };
 
-  // Get user's first name from session
   const userFirstName = session?.user?.name?.split(" ")[0] ?? "";
 
-  // Fetch recent quizzes from the database
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const { data: recentQuizzes = [], isLoading: isLoadingQuizzes } =
     api.chat.getRecentQuizzes.useQuery({ limit: 5 });
 
-  // Calculate statistics from actual quiz data
   const calculateStats = () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (recentQuizzes.length === 0) {
@@ -59,7 +56,6 @@ const ProgressPage = () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const averageScore = Math.round(totalScore / recentQuizzes.length);
 
-    // Count strong (>=70%) and weak (<50%) performances
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const strongTopics = recentQuizzes.filter(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -86,14 +82,12 @@ const ProgressPage = () => {
 
   const overallStats = calculateStats();
 
-  // Calculate real topic performance from quiz attempts
   const calculateTopicPerformance = () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (recentQuizzes.length === 0) {
       return [];
     }
 
-    // Group quizzes by file/document name as "topics"
     const topicMap = new Map<string, { correct: number; total: number }>();
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
@@ -112,7 +106,6 @@ const ProgressPage = () => {
       });
     });
 
-    // Convert to array and return
     return Array.from(topicMap.entries()).map(([topic, data]) => ({
       topic,
       correct_count: data.correct,
@@ -122,7 +115,6 @@ const ProgressPage = () => {
 
   const topics = calculateTopicPerformance();
 
-  // --- Helper functions for icons & colors ---
   const getTopicIcon = (percentage: number) => {
     if (percentage >= 70)
       return (
@@ -149,7 +141,6 @@ const ProgressPage = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* Minimal Clean Header - matching dashboard */}
       <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md dark:border-gray-700 dark:bg-gray-900/80">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
@@ -200,7 +191,6 @@ const ProgressPage = () => {
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Header - matching dashboard style */}
         <div className="mb-12">
           <div className="flex items-center justify-between">
             <div>
@@ -214,7 +204,6 @@ const ProgressPage = () => {
           </div>
         </div>
 
-        {/* Summary Cards - matching dashboard style */}
         <div className="mb-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="border border-gray-100 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
             <CardContent className="p-6">

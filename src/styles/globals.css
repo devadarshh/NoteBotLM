@@ -15,8 +15,8 @@
   -moz-user-select: none;
   -ms-user-select: none;
   caret-color: transparent;
-  -webkit-overflow-scrolling: touch; /* Enable smooth scrolling on iOS */
-  touch-action: manipulation; /* Allow touch scrolling */
+  -webkit-overflow-scrolling: touch; 
+  touch-action: manipulation; 
 }
 
 input,
@@ -149,7 +149,6 @@ body {
   }
 }
 
-/* Custom animations for the signin page */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -211,12 +210,10 @@ body {
   animation: tilt 10s ease-in-out infinite;
 }
 
-/* Enhanced focus states for better accessibility */
 .focus-ring {
   @apply focus:ring-2 focus:ring-blue-500/25 focus:ring-offset-2 focus:outline-none;
 }
 
-/* Smooth transitions for professional feel */
 * {
   transition-property:
     color, background-color, border-color, text-decoration-color, fill, stroke,
@@ -233,7 +230,6 @@ body {
   animation: tilt 10s ease-in-out infinite;
 }
 
-/* NotebookLM-style citation enhancements */
 .citation-badge {
   position: relative;
   display: inline-flex;
@@ -267,7 +263,6 @@ body {
   transform: scale(0.95);
 }
 
-/* Subtle pulse animation for fresh citations */
 @keyframes citation-pulse {
   0%,
   100% {
@@ -284,7 +279,6 @@ body {
   animation: citation-pulse 1.5s ease-in-out;
 }
 
-/* Enhanced tooltip styling for citations */
 .citation-tooltip {
   max-width: 320px;
   font-size: 0.875rem;
@@ -299,7 +293,6 @@ body {
     0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
-/* Dark mode styling for citation tooltips */
 .dark .citation-tooltip {
   background: rgba(31, 41, 55, 0.95);
   border: 1px solid rgba(75, 85, 99, 0.8);

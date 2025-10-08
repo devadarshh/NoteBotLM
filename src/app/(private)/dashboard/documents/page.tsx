@@ -79,7 +79,6 @@ export default function DocumentsPage() {
                 return f;
               }),
             );
-            // Refresh the documents list to show newly uploaded files
             void refetchFiles();
           } else {
             setUploadedFiles((prev) =>
@@ -97,7 +96,6 @@ export default function DocumentsPage() {
 
     await Promise.allSettled(uploadPromises);
 
-    // Clear uploaded files list after all uploads are complete
     setTimeout(() => {
       setUploadedFiles([]);
     }, 2000);

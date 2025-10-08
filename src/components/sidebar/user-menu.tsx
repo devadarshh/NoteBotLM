@@ -2,8 +2,6 @@
 
 import { LogOut, Settings, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// import { useToast } from "@/components/ui/use-toast";
-// import { useToast } from "@/components/ui/use-toast";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -25,7 +23,6 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ user }: UserMenuProps) {
-  // Using direct sonner toast here to avoid wrapper type inference issues with strict lint rules
 
   const initials = user.name
     ? user.name

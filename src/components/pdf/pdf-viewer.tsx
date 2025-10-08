@@ -60,18 +60,15 @@ export function PdfViewer({
 
       const doc = pdfRef.current;
       let targetPage;
-      // Create regex pattern for multi-line matching
       const escapedText = searchText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const multilineRegex = new RegExp(
         escapedText.replace(/\s+/g, "\\s*[\\r\\n]*\\s*"),
         "gi",
       );
       console.log("multilineRegex", multilineRegex);
-      // If we have a specific page, go there directly
       if (initialPage) {
         targetPage = initialPage;
       } else {
-        // Otherwise, search through pages to find the text
         for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {
           const page = await doc.getPage(pageNum);
           const textContent = await page.getTextContent();
@@ -112,7 +109,6 @@ export function PdfViewer({
         return;
       }
 
-      // Check if paragraph contains highlighted text
       if (
         textToHighlight &&
         paragraphText.toLowerCase().includes(textToHighlight.toLowerCase())
@@ -161,10 +157,8 @@ export function PdfViewer({
       const line = lines[i];
       if (!line) continue;
 
-      // Check if this is a page marker
       const pageMarkerMatch = /^--- Page (\d+) ---$/.exec(line);
       if (pageMarkerMatch) {
-        // Flush any pending paragraph before adding page marker
         flushParagraph(i);
 
         const pageNum = pageMarkerMatch[1];
@@ -187,17 +181,14 @@ export function PdfViewer({
         continue;
       }
 
-      // Handle empty lines as paragraph breaks
       if (line.trim() === "") {
         flushParagraph(i);
         continue;
       }
 
-      // Add line to current paragraph buffer
       paragraphBuffer.push(line.trim());
     }
 
-    // Flush any remaining paragraph
     flushParagraph(lines.length);
 
     return elements;

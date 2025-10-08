@@ -160,7 +160,6 @@ export const chatRouter = createTRPCRouter({
   deleteFile: protectedProcedure
     .input(z.object({ fileId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      // Find the file to ensure it belongs to the user
       const file = await ctx.db.file.findFirst({
         where: {
           id: input.fileId,
@@ -182,7 +181,6 @@ export const chatRouter = createTRPCRouter({
 
         if (storageError) {
           console.error("Error deleting from Supabase storage:", storageError);
-          // Continue with database deletion even if storage deletion fails
         }
 
         // Delete from database
@@ -209,7 +207,6 @@ export const chatRouter = createTRPCRouter({
       try {
         const { fileId, quizType, numberOfQuestions } = input;
 
-        // Get the file and its associated PDF chunks from database
         const file = await ctx.db.file.findFirst({
           where: {
             id: fileId,
@@ -223,7 +220,6 @@ export const chatRouter = createTRPCRouter({
           );
         }
 
-        // Use the existing PDF full-text API to get document content
         const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
         const response = await fetch(
           `${baseUrl}/api/pdf/full-text?fileId=${fileId}`,
@@ -303,7 +299,6 @@ Make sure to return valid JSON only.`;
 
         let quizData: { questions?: unknown[] } | undefined;
         try {
-          // Try to parse the JSON response
           const jsonRegex = /\{[\s\S]*\}/;
           const jsonMatch = jsonRegex.exec(result.text);
           if (jsonMatch?.[0]) {
@@ -340,16 +335,13 @@ Make sure to return valid JSON only.`;
       }
     }),
 
-  // Dashboard statistics procedures
   getDashboardStats: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
-    // Get total documents count
     const totalDocuments = await ctx.db.file.count({
       where: { userId },
     });
 
-    // Get real quiz attempts data
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const quizAttempts = await ctx.db.quizAttempt.findMany({
       where: {
@@ -365,11 +357,9 @@ Make sure to return valid JSON only.`;
       },
     });
 
-    // Calculate real quizzes completed
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const quizzesCompleted = quizAttempts.length;
 
-    // Calculate real average score
     let averageScore = 0;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (quizAttempts.length > 0) {
@@ -382,7 +372,6 @@ Make sure to return valid JSON only.`;
       averageScore = Math.round(totalPercentage / quizAttempts.length);
     }
 
-    // Get messages to calculate activity streak
     const userMessages = await ctx.db.message.findMany({
       where: {
         chat: { userId },
@@ -393,10 +382,8 @@ Make sure to return valid JSON only.`;
       },
     });
 
-    // Calculate streak (consecutive days with activity)
     const streak = calculateStreak(userMessages.map((m) => m.createdAt));
 
-    // Calculate study time this week (based on quiz attempts and message activity)
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
@@ -409,7 +396,6 @@ Make sure to return valid JSON only.`;
       (m) => m.createdAt >= oneWeekAgo,
     );
 
-    // Estimate: 15 min per quiz + 5 min per message interaction
     const studyTimeHours =
       Math.round(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -426,7 +412,6 @@ Make sure to return valid JSON only.`;
     };
   }),
 
-  // Save quiz attempt
   saveQuizAttempt: protectedProcedure
     .input(
       z.object({
@@ -441,7 +426,6 @@ Make sure to return valid JSON only.`;
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
 
-      // Create quiz record
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       const quiz = await ctx.db.quiz.create({
         data: {
@@ -453,7 +437,6 @@ Make sure to return valid JSON only.`;
         },
       });
 
-      // Create quiz attempt
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       const quizAttempt = await ctx.db.quizAttempt.create({
         data: {
@@ -526,7 +509,6 @@ Make sure to return valid JSON only.`;
     }),
 });
 
-// Helper function to calculate consecutive day streak
 function calculateStreak(dates: Date[]): number {
   if (dates.length === 0) return 0;
 
@@ -551,7 +533,6 @@ function calculateStreak(dates: Date[]): number {
       streak++;
       currentDate -= 24 * 60 * 60 * 1000; // Go back one day
     } else if (dayTime === currentDate + 24 * 60 * 60 * 1000) {
-      // If we missed today but had activity yesterday, start from yesterday
       if (streak === 0) {
         streak++;
         currentDate = dayTime - 24 * 60 * 60 * 1000;

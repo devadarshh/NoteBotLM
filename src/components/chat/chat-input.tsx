@@ -34,7 +34,6 @@ export function ChatInput({
 
     onSubmit(input.trim());
     setInput("");
-    // Don't clear files - they persist throughout the conversation
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -106,7 +105,6 @@ export function ChatInput({
     const selectedFiles = e.target.files;
     if (selectedFiles && selectedFiles.length > 0) {
       await handleFileUpload(selectedFiles);
-      // Reset the input so the same file can be selected again
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -118,7 +116,6 @@ export function ChatInput({
   };
 
   const handleSelectDocuments = (documents: UploadedFile[]) => {
-    // Add selected documents to uploaded files, avoiding duplicates
     setUploadedFiles((prev) => {
       const existingIds = prev.map((file) => file.id);
       const newDocuments = documents.filter(
@@ -244,7 +241,6 @@ export function ChatInput({
           </div>
         </form>
 
-        {/* Document Selector Modal */}
         {showDocumentSelector && (
           <DocumentSelector
             onSelectDocuments={handleSelectDocuments}

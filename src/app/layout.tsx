@@ -28,12 +28,8 @@ export const metadata: Metadata = {
       },
     ],
   },
-  manifest: "/site.webmanifest",
 };
 
-// Swapped Geist for Inter (professional, highly readable). Reuse the same
-// CSS variable name so global styles referencing --font-geist-sans keep working
-// without further changes.
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-geist-sans",
@@ -55,7 +51,6 @@ export default function RootLayout({
           <SessionProvider>
             <TRPCReactProvider>
               {children}
-              {/* Global toast portal (Sonner) */}
               <AppToaster />
             </TRPCReactProvider>
           </SessionProvider>

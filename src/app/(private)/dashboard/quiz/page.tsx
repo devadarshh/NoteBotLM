@@ -58,20 +58,16 @@ export default function QuizPage() {
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
   const [quizScore, setQuizScore] = useState<number>(0);
 
-  // Fetch user's uploaded documents
   const { data: userDocuments = [], isLoading: isLoadingDocuments } =
     api.chat.listFiles.useQuery();
 
-  // Quiz attempt mutation
   const saveQuizAttemptMutation = api.chat.saveQuizAttempt.useMutation();
 
-  // Calculate quiz score
   const calculateScore = () => {
     let correct = 0;
     generatedQuestions.forEach((question, index) => {
       const userAnswer = userAnswers[index];
       if (userAnswer !== undefined) {
-        // For MCQ, compare the selected option index with correct answer
         if (question.options && question.options.length > 0) {
           if (parseInt(userAnswer) === question.correctAnswer) {
             correct++;
@@ -82,11 +78,9 @@ export default function QuizPage() {
     return correct;
   };
 
-  // Auto-select document from URL parameter
   useEffect(() => {
     const docId = searchParams.get("docId");
     if (docId && userDocuments.length > 0) {
-      // Check if the document exists in user's documents
       const documentExists = userDocuments.some((doc) => doc.id === docId);
       if (documentExists) {
         setSelectedDocument(docId);
@@ -94,13 +88,10 @@ export default function QuizPage() {
     }
   }, [searchParams, userDocuments]);
 
-  // Quiz generation mutation
   const generateQuizMutation = api.chat.generateQuiz.useMutation();
 
-  // Helper to get selected document details
   const selectedDoc = userDocuments.find((doc) => doc.id === selectedDocument);
 
-  // Handle quiz generation
   const handleGenerateQuiz = async () => {
     if (!selectedDocument || !quizType || !numberOfQuestions) {
       return;
@@ -119,13 +110,11 @@ export default function QuizPage() {
       setStage("quiz");
     } catch (error) {
       console.error("Error generating quiz:", error);
-      // You might want to show a toast notification here
     } finally {
       setIsGeneratingQuiz(false);
     }
   };
 
-  // Reset quiz state for new quiz
   const handleNewQuiz = () => {
     setStage("generate");
     setCurrentQuestion(0);
@@ -192,10 +181,8 @@ export default function QuizPage() {
       </header>
 
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* -------------------- Generate Quiz Section -------------------- */}
         {stage === "generate" && (
           <div className="space-y-6">
-            {/* Page Header */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
                 Generate Quiz
@@ -359,10 +346,8 @@ export default function QuizPage() {
           </div>
         )}
 
-        {/* -------------------- Quiz Questions Section -------------------- */}
         {stage === "quiz" && (
           <div className="space-y-6">
-            {/* Progress Header */}
             <div className="mb-8 flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -445,7 +430,6 @@ export default function QuizPage() {
                         const score = calculateScore();
                         setQuizScore(score);
 
-                        // Save quiz attempt to database
                         if (selectedDocument && quizType) {
                           try {
                             await saveQuizAttemptMutation.mutateAsync({
@@ -476,7 +460,6 @@ export default function QuizPage() {
           </div>
         )}
 
-        {/* -------------------- Quiz Results Section -------------------- */}
         {stage === "result" && (
           <div className="space-y-6">
             {/* Results Header */}

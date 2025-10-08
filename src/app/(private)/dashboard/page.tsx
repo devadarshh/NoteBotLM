@@ -28,7 +28,6 @@ export default function Dashboard() {
   const [isNavigatingToQuiz, setIsNavigatingToQuiz] = useState(false);
   const [isNavigatingToAnalytics, setIsNavigatingToAnalytics] = useState(false);
 
-  // Fetch real dashboard statistics
   const { data: dashboardStats, isLoading: isLoadingStats } =
     api.chat.getDashboardStats.useQuery();
 
@@ -36,7 +35,6 @@ export default function Dashboard() {
     setIsNavigatingToAnalytics(true);
     router.push("/dashboard/analytics");
 
-    // Reset loading state after 3 seconds as failsafe
     setTimeout(() => {
       setIsNavigatingToAnalytics(false);
     }, 3000);
@@ -46,7 +44,6 @@ export default function Dashboard() {
     setIsNavigatingToQuiz(true);
     router.push("/dashboard/quiz");
 
-    // Reset loading state after 3 seconds as failsafe
     setTimeout(() => {
       setIsNavigatingToQuiz(false);
     }, 3000);
@@ -55,7 +52,6 @@ export default function Dashboard() {
     setIsNavigatingToDocuments(true);
     router.push("/dashboard/documents");
 
-    // Reset loading state after 3 seconds as failsafe
     setTimeout(() => {
       setIsNavigatingToDocuments(false);
     }, 3000);
@@ -64,7 +60,6 @@ export default function Dashboard() {
     setIsNavigatingToChat(true);
     router.push("/chat");
 
-    // Reset loading state after 3 seconds as failsafe
     setTimeout(() => {
       setIsNavigatingToChat(false);
     }, 3000);
@@ -74,7 +69,6 @@ export default function Dashboard() {
     void signOut({ callbackUrl: "/auth/signin" });
   };
 
-  // Get user's first name from session
   const userFirstName = session?.user?.name?.split(" ")[0] ?? "";
 
   return (
@@ -121,7 +115,6 @@ export default function Dashboard() {
 
       {/* Main Dashboard Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Dark Mode Compatible Welcome Section */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div className="mb-4 sm:mb-0">

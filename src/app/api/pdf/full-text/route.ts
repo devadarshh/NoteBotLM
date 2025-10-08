@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "File ID is required" }, { status: 400 });
     }
 
-    // Get file info from database
     const file = await db.file.findUnique({
       where: { id: fileId },
     });
@@ -26,7 +25,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
-    // Download file from Supabase storage
     const { data: fileData, error: downloadError } = await supabase.storage
       .from("files")
       .download(file.supabasePath);
@@ -48,7 +46,6 @@ export async function GET(request: NextRequest) {
     // Extract text from PDF
     const docs = await loader.load();
 
-    // Format text with page markers
     let fullText = "";
     docs.forEach((doc, index) => {
       const pageNumber = index + 1;

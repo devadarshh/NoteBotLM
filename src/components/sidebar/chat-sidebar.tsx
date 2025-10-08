@@ -34,7 +34,7 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
               <GraduationCap className="h-4 w-4 text-white group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
             </div>
             <span className="text-base font-bold text-gray-900 group-data-[collapsible=icon]:hidden dark:text-white">
-              NoteBot{" "}
+              NoteBot
               <span className="text-blue-600 dark:text-blue-400">LM</span>
             </span>
           </div>
