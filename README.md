@@ -1,268 +1,125 @@
-# Sage RAG App
+# 📘 NoteBot LM – AI-Powered Study & Revision Assistant
 
-A RAG (Retrieval-Augmented Generation) application built with the [T3 Stack](https://create.t3.gg/), featuring document processing, vector search, and AI-powered chat.
+NoteBot LM is an intelligent web app designed to help students revise their course materials.
+Upload any PDF to generate dynamic quizzes (MCQs, SAQs, LAQs) tailored to the content.
+Engage with an AI tutor that provides RAG-based answers with citations from the source text.
+Track your progress and deepen your understanding for a more effective learning experience.
 
-## Tech Stack
+**🌐 Live Demo:** [Access NoteBot LM](https://trelloidapp.vercel.app)  
+**🎬 Project Walkthrough:** [Watch on YouTube](https://youtu.be/RoMS51P2jRA)
 
-- **Frontend**: [Next.js](https://nextjs.org), [Tailwind CSS](https://tailwindcss.com)
-- **Backend**: [tRPC](https://trpc.io), [Prisma](https://prisma.io)
-- **Authentication**: [NextAuth.js](https://next-auth.js.org)
-- **Vector Database**: [Qdrant](https://qdrant.tech/)
-- **Job Queue**: [BullMQ](https://docs.bullmq.io/) with Valkey/Redis
-- **AI/ML**: [Google Gemini](https://ai.google.dev/), [HuggingFace](https://huggingface.co/)
-- **Storage**: [Supabase](https://supabase.com/)
+## ✅ Core Features
 
-## Prerequisites
+- 📚 **PDFs & Coursebooks** – Upload and manage all your course materials in one place.
+- 🧠 **AI Quiz Generation** – Instantly create quizzes (MCQs, SAQs, LAQs) from any document.
+- 🤖 **Intelligent Chat Tutor** – Ask questions and get cited, RAG-powered answers directly from your texts.
+- 📊 **Progress & Analytics** – Track your strengths and weaknesses with a simple dashboard.
+- ✅ **Source Citations** – Every AI-generated answer includes the page number and a direct quote for easy verification.
+- 📄 **Interactive PDF Viewer** – Read and chat side-by-side with a clean, split-view interface.
+- 🎥 **Video Recommendations** – Get relevant YouTube videos suggested for any topic you're studying.
 
-- Node.js 18+ and npm/pnpm
-- Docker and Docker Compose
-- Supabase account
-- Google Cloud account (for Gemini API)
-- HuggingFace account (for embeddings)
+## 🛠 Tech Stack
 
-## Getting Started
+### **Client (Frontend)**
 
-### 1. Clone and Install Dependencies
+- ⚛️ **Next.js 15+** – React framework for full-stack web applications, including server-side rendering and routing.
+- 🎨 **Tailwind CSS** – Utility-first CSS framework for rapid and responsive UI development.
+- ✨ **Shadcn UI** – Beautifully crafted UI components built with Radix UI and Tailwind CSS.
+- 📝 **@react-pdf-viewer** – Robust PDF viewing capabilities with features like search, highlight, and page navigation.
+- ⚡ **@tanstack/react-query** – Powerful data fetching and state management for server data.
+- 💡 **Lucide React** – A collection of beautiful and customizable open-source icons.
+- 🌗 **Next-Themes** – Easy integration of light and dark mode themes.
+
+### **Server (Backend & AI)**
+
+- 🟢 **tRPC** – End-to-end typesafe APIs, allowing full type inference from backend to frontend.
+- 🗄 **PostgreSQL + Prisma** – Relational database provided by Supabase with a next-generation ORM for simplified database access.
+- 🔒 **NextAuth.js** – Flexible authentication for Next.js applications, supporting Google OAuth.
+- 📦 **Qdrant** – High-performance vector similarity search engine, used for storing document embeddings.
+- ⚙️ **BullMQ** – Robust, Redis/Valkey-backed job queue for handling background tasks like PDF processing.
+- 🧠 **Google Gemini** – Advanced LLM for generating quiz questions, chat responses, and video recommendations.
+- 🤗 **HuggingFace Inference** – Utilized for generating high-quality embeddings from PDF chunks.
+- ⛓️ **LangChain** – Framework for developing applications powered by language models, used for document chunking and RAG pipeline.
+
+### **Infrastructure**
+
+- 🐳 **Docker** – Used for containerized development and deployment.
+- ☁️ **Vercel** – Frontend hosting for Next.js app.
+
+## Installation & Running Locally
+
+Follow these steps to set up and run NoteBot LM on your local machine:
 
 ```bash
-git clone <repository-url>
-cd sage-rag-app-main
+# Clone the repository
+
+git clone <your-repository-url>
+
+cd <your-repository-directory>
+
+# Install dependencies
+
 npm install
-```
 
-### 2. Start Docker Services
+# Duplicate .env.example and rename it to .env
 
-Start Valkey (Redis) and Qdrant containers:
-
-```bash
-docker-compose up -d
-```
-
-Verify containers are running:
-
-```bash
-docker-compose ps
-```
-
-You should see:
-
-- `sage-valkey` running on port 6379
-- `sage-qdrant` running on ports 6333 (HTTP) and 6334 (gRPC)
-
-### 3. Configure Environment Variables
-
-Copy the example environment file:
-
-```bash
 cp .env.example .env
-```
 
-Edit `.env` and fill in the required values:
+# Start Docker Services
 
-```env
-# Database
-DATABASE_URL="your-supabase-connection-pooling-url"
-DIRECT_URL="your-supabase-direct-connection-url"
+docker-compose up -d
 
-# Authentication
-AUTH_SECRET="generate-with-npx-auth-secret"
-GOOGLE_CLIENT_ID="your-google-oauth-client-id"
-GOOGLE_CLIENT_SECRET="your-google-oauth-client-secret"
+# Verify that the containers are running
 
-# AI Services
-GOOGLE_GENERATIVE_AI_API_KEY="your-gemini-api-key"
-HUGGINGFACE_API_KEY="your-huggingface-api-key"
+docker-compose ps
 
-# Supabase
-SUPABASE_KEY="your-supabase-anon-key"
-NEXT_PUBLIC_SUPABASE_URL="your-supabase-project-url"
+# Initialize the database
 
-# Redis/Valkey (Docker defaults)
-REDIS_HOST="localhost"
-REDIS_PORT="6379"
-
-# Qdrant (Docker defaults)
-QDRANT_URL="http://localhost:6333"
-```
-
-### 4. Set Up Database
-
-Run Prisma migrations:
-
-```bash
 npx prisma migrate dev
+
 npx prisma generate
-```
 
-### 5. Start the Application
+# Run the application
 
-Start the Next.js development server:
-
-```bash
 npm run dev
-```
-
-### 6. Start the Background Worker
-
-In a separate terminal, start the BullMQ worker for processing file uploads:
-
-```bash
-npx tsx src/server/api/routers/chat/worker.ts
-```
-
-The application should now be running at `http://localhost:3000`
-
-## Docker Services
-
-### Valkey (Redis)
-
-- **Port**: 6379
-- **Purpose**: Job queue for BullMQ (file processing)
-- **Data persistence**: `valkey_data` volume
-- **Health check**: `redis-cli ping`
-
-### Qdrant
-
-- **Ports**: 6333 (HTTP/REST), 6334 (gRPC)
-- **Purpose**: Vector database for document embeddings
-- **Data persistence**: `qdrant_data` volume
-- **Health check**: `http://localhost:6333/healthz`
-- **Dashboard**: `http://localhost:6333/dashboard`
-
-### Managing Docker Services
-
-```bash
-# Start services
-docker-compose up -d
-
-# Stop services
-docker-compose down
-
-# View logs
-docker-compose logs -f
-
-# View specific service logs
-docker-compose logs -f valkey
-docker-compose logs -f qdrant
-
-# Restart services
-docker-compose restart
-
-# Remove volumes (WARNING: deletes all data)
-docker-compose down -v
-```
-
-## Project Structure
 
 ```
-src/
-├── app/                    # Next.js app directory
-│   ├── api/               # API routes
-│   │   └── chat/         # Chat endpoint
-│   └── (private)/        # Protected pages
-├── components/            # React components
-│   ├── chat/             # Chat interface
-│   ├── pdf/              # PDF viewer
-│   └── sidebar/          # Navigation
-├── server/               # Backend logic
-│   ├── api/
-│   │   └── routers/
-│   │       └── chat/
-│   │           ├── create.ts    # tRPC chat router
-│   │           ├── helper.ts    # File upload & queue
-│   │           └── worker.ts    # Background job processor
-│   ├── auth/             # NextAuth configuration
-│   └── db.ts             # Prisma client
-└── lib/                  # Utilities
-```
 
-## How It Works
+## 📸 Screenshots
 
-1. **File Upload**: Users upload PDF documents through the UI
-2. **Job Queue**: Files are queued in Valkey/Redis via BullMQ
-3. **Processing**: Background worker:
-   - Downloads file from Supabase
-   - Splits into chunks using LangChain
-   - Generates embeddings via HuggingFace
-   - Stores vectors in Qdrant
-4. **Chat**: User queries are:
-   - Embedded using the same model
-   - Searched in Qdrant for relevant chunks
-   - Sent to Gemini with context for RAG response
+### Landing Page
 
-## Troubleshooting
+![Landing Page](apps/web/assets/screenshots/landing_page.png)
 
-### Docker containers won't start
+### Sign In Page
 
-```bash
-# Check if ports are already in use
-lsof -i :6379
-lsof -i :6333
+![Sign In Page](apps/web/assets/screenshots/sign_in_page.png)
 
-# Remove old containers and volumes
-docker-compose down -v
-docker-compose up -d
-```
+### Organization Page
 
-## UI Feedback (Toasts)
+![Organization Page](apps/web/assets/screenshots/organizaions_page.png)
 
-The project uses the [Sonner](https://sonner.emilkowal.ski/) library for toast notifications.
+### Board Page
 
-Global setup is handled in `src/app/layout.tsx` by rendering `<AppToaster />` once. A small wrapper `useToast()` exists at `src/components/ui/use-toast.ts` to provide a simple API plus helpers (`success`, `error`, `info`, `warning`, `promise`).
+![Board Page](apps/web/assets/screenshots/board_page.png)
 
-### Showing a toast
+### Card Page
 
-```tsx
-import { useToast } from "@/components/ui/use-toast";
+![Card Page](apps/web/assets/screenshots/card_modal.png)
 
-function ExampleButton() {
-  const { toast, success } = useToast();
-  return (
-    <button
-      onClick={() =>
-        success("Uploaded", { description: "Your document is now processing." })
-      }
-    >
-      Notify
-    </button>
-  );
-}
-```
+### Settings Page
 
-You can also import the raw `toast` function directly:
+![Settings Page](apps/web/assets/screenshots/settings_page.png)
 
-```tsx
-import { toast } from "sonner";
-toast.success("All good");
-```
+### Billing Page
 
-Default position is top-right with rich colors enabled. Adjust in `AppToaster` if needed.
+![Billing Page](apps/web/assets/screenshots/pro_modal.png)
 
-### Worker not processing files
+### Activity Page
 
-- Ensure Valkey is running: `docker-compose ps`
-- Check worker logs for errors
-- Verify `REDIS_HOST` and `REDIS_PORT` in `.env`
+![Activity Page](apps/web/assets/screenshots/activity_page.png)
 
-### Qdrant connection errors
+## 📄 License
 
-- Verify Qdrant is running: `curl http://localhost:6333/healthz`
-- Check `QDRANT_URL` in `.env`
-- View Qdrant logs: `docker-compose logs qdrant`
-
-## Learn More
-
-- [T3 Stack Documentation](https://create.t3.gg/)
-- [Qdrant Documentation](https://qdrant.tech/documentation/)
-- [BullMQ Documentation](https://docs.bullmq.io/)
-- [LangChain Documentation](https://js.langchain.com/docs/)
-
-## Deployment
-
-For production deployment, ensure:
-
-1. Update Docker Compose for production (add resource limits, networks)
-2. Use managed Redis/Qdrant services or deploy containers with proper persistence
-3. Set up proper environment variables in your hosting platform
-4. Configure CORS and security headers
-5. Set up monitoring and logging
+This project is licensed under a **Custom Personal Use License** — you may view and learn from the code, but **commercial use, redistribution, or claiming authorship is strictly prohibited**.  
+See the full [LICENSE](./LICENSE) for details.

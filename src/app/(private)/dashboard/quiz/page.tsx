@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ interface QuizQuestion {
   topic: string;
 }
 
-export default function QuizPage() {
+function QuizPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
@@ -573,5 +573,13 @@ export default function QuizPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function QuizPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <QuizPageContent />
+    </Suspense>
   );
 }

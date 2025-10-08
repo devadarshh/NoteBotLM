@@ -36,7 +36,7 @@ export function usePdfFullText(fileId: string | null): UsePdfFullTextResult {
           throw new Error(`Failed to fetch PDF text: ${response.statusText}`);
         }
 
-        const result = await response.json();
+        const result = await response.json() as PdfFullTextData;
         setData(result);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error occurred");

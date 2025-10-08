@@ -12,6 +12,7 @@
     "db:studio": "prisma studio",
     "dev": "concurrently \"npm run worker\" \"next dev --turbo\" --names \"worker,next\" --prefix-colors \"blue,green\"",
     "worker": "tsx watch src/server/api/routers/chat/worker.ts",
+    "worker:prod": "tsx src/server/api/routers/chat/worker.ts",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "postinstall": "prisma generate",
@@ -19,6 +20,9 @@
     "lint:fix": "next lint --fix",
     "preview": "next build && next start",
     "start": "next start",
+    "start:production": "concurrently \"npm run worker:prod\" \"npm run start\" --names \"worker,next\" --prefix-colors \"blue,green\"",
+    "docker:build": "docker build -t notebot-lm .",
+    "docker:run": "docker run -p 3000:3000 notebot-lm",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

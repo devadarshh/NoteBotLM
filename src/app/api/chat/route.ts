@@ -16,6 +16,7 @@ import { QdrantClient } from "@qdrant/js-client-rest";
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 const qdrantClient = new QdrantClient({
   url: process.env.QDRANT_URL,
+  apiKey: process.env.QDRANT_API_KEY,
 });
 
 const collectionName = "document-embeddings-hf";
@@ -45,7 +46,7 @@ const ensureCollectionExists = async () => {
 
 const PROMPT = `
 ### IMPERATIVE:  
-You are a world-class research assistant. Your task is to analyze the user's QUESTION based *exclusively* on the provided CONTEXT from documents.
+You are a world-class research assistant. Your task is to analyze the user's QUESTION based *exclusively* on the provided CONTEXT from documents and also generate a *perfect formatted and aligned response to the user.
 
 ## CONTEXT:
 ---
@@ -67,6 +68,15 @@ You are a world-class research assistant. Your task is to analyze the user's QUE
 3.  **Unique Citations:** Each citation must have a unique sequential number, even if multiple facts come from the same source. Do not repeat numbers. For example: [1], [2], [3], [4], etc.
 
 4.  **No Information:** If the CONTEXT does not contain the answer, state clearly "Based on the provided documents, I cannot answer this question."
+
+5.  **Formatting:** The response must be perfectly structured and formatted with consistent indentation. and dont show all the Citations at the end of the response.
+
+6. **Academic or Subject Questions:**
+   - If the QUESTION is related to an academic topic (e.g., science, math, literature, economics, technology, etc.), include a section at the end titled:
+     **"🎥 Relevant YouTube Resources"**
+     - List 2–3 YouTube video links that can help the user understand the topic further.
+     - The videos must be *educational and reliable* (official channels, university lectures, or verified educators).
+
 
 ## CITATION RULES (APPLY STRICTLY):
 -   Format: <citation source-id="[ID]" file-page-number="[Page Number]" file-id="[File ID]" cited-text="[Exact Quoted Text]">[ID]</citation>
@@ -120,7 +130,7 @@ export async function POST(req: NextRequest) {
       const existingFiles = await db.file.findMany({
         where: {
           id: { in: fileIds },
-          userId: session.user.id, 
+          userId: session.user.id,
         },
         select: { id: true },
       });
