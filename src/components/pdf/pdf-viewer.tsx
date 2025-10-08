@@ -126,7 +126,7 @@ export function PdfViewer({
         elements.push(
           <p
             key={`para-${index}`}
-            className="mb-6 text-[15px] leading-[1.7] tracking-[0.01em] text-gray-800 dark:text-gray-200"
+            className="mb-8 text-[15px] leading-[1.8] tracking-[0.01em] text-gray-800 dark:text-gray-200"
           >
             {parts.map((part, partIndex) => {
               if (part.toLowerCase() === textToHighlight.toLowerCase()) {
@@ -147,7 +147,7 @@ export function PdfViewer({
         elements.push(
           <p
             key={`para-${index}`}
-            className="mb-6 text-[15px] leading-[1.7] tracking-[0.01em] text-gray-800 dark:text-gray-200"
+            className="mb-8 text-[15px] leading-[1.8] tracking-[0.01em] text-gray-800 dark:text-gray-200"
           >
             {paragraphText}
           </p>,
@@ -159,16 +159,17 @@ export function PdfViewer({
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
+      if (!line) continue;
 
       // Check if this is a page marker
-      const pageMarkerMatch = line.match(/^--- Page (\d+) ---$/);
+      const pageMarkerMatch = /^--- Page (\d+) ---$/.exec(line);
       if (pageMarkerMatch) {
         // Flush any pending paragraph before adding page marker
         flushParagraph(i);
 
         const pageNum = pageMarkerMatch[1];
         elements.push(
-          <div key={`page-${pageNum}-${i}`} className="my-12 flex items-center">
+          <div key={`page-${pageNum}-${i}`} className="my-16 flex items-center">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-600"></div>
             <div className="mx-6 flex items-center space-x-2 rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
               <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -293,7 +294,7 @@ export function PdfViewer({
                     </div>
                   </div>
                   <div className="prose prose-gray dark:prose-invert max-w-none">
-                    <div className="text-content space-y-1">
+                    <div className="text-content space-y-2">
                       {renderFormattedText(fullTextData.fullText)}
                     </div>
                   </div>
