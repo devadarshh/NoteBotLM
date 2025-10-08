@@ -101,58 +101,39 @@ export function PdfViewer({
   const renderFormattedText = (text: string) => {
     const lines = text.split("\n");
     const elements: React.ReactNode[] = [];
+    let paragraphBuffer: string[] = [];
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (!line) continue;
+    const flushParagraph = (index: number) => {
+      if (paragraphBuffer.length === 0) return;
 
-      // Check if this is a page marker
-      const pageMarkerMatch = line.match(/^--- Page (\d+) ---$/);
-      if (pageMarkerMatch) {
-        const pageNum = pageMarkerMatch[1];
-        elements.push(
-          <div key={`page-${pageNum}-${i}`} className="my-8 flex items-center">
-            <div className="via-border h-px flex-1 bg-gradient-to-r from-transparent to-transparent"></div>
-            <div className="bg-primary/10 text-primary mx-4 flex items-center space-x-2 rounded-full px-4 py-2 text-sm font-medium">
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>Page {pageNum}</span>
-            </div>
-            <div className="via-border h-px flex-1 bg-gradient-to-r from-transparent to-transparent"></div>
-          </div>,
-        );
-        continue;
+      const paragraphText = paragraphBuffer.join(" ").trim();
+      if (!paragraphText) {
+        paragraphBuffer = [];
+        return;
       }
 
-      // Skip empty lines after page markers
-      if (line.trim() === "" && elements.length > 0) {
-        continue;
-      }
-
-      // Highlight the cited text if it exists in this line
+      // Check if paragraph contains highlighted text
       if (
         textToHighlight &&
-        line.toLowerCase().includes(textToHighlight.toLowerCase())
+        paragraphText.toLowerCase().includes(textToHighlight.toLowerCase())
       ) {
         const regex = new RegExp(
           `(${textToHighlight.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
           "gi",
         );
-        const parts = line.split(regex);
+        const parts = paragraphText.split(regex);
 
         elements.push(
-          <p key={`line-${i}`} className="text-foreground mb-2 leading-relaxed">
+          <p
+            key={`para-${index}`}
+            className="mb-6 text-[15px] leading-[1.7] tracking-[0.01em] text-gray-800 dark:text-gray-200"
+          >
             {parts.map((part, partIndex) => {
               if (part.toLowerCase() === textToHighlight.toLowerCase()) {
                 return (
                   <mark
                     key={partIndex}
-                    className="bg-primary/20 text-primary animate-pulse rounded px-1 py-0.5"
+                    className="rounded-sm bg-blue-100 px-1 py-0.5 font-medium text-blue-900 dark:bg-blue-900/40 dark:text-blue-200"
                   >
                     {part}
                   </mark>
@@ -162,14 +143,61 @@ export function PdfViewer({
             })}
           </p>,
         );
-      } else if (line.trim() !== "") {
+      } else {
         elements.push(
-          <p key={`line-${i}`} className="text-foreground mb-2 leading-relaxed">
-            {line}
+          <p
+            key={`para-${index}`}
+            className="mb-6 text-[15px] leading-[1.7] tracking-[0.01em] text-gray-800 dark:text-gray-200"
+          >
+            {paragraphText}
           </p>,
         );
       }
+
+      paragraphBuffer = [];
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Check if this is a page marker
+      const pageMarkerMatch = line.match(/^--- Page (\d+) ---$/);
+      if (pageMarkerMatch) {
+        // Flush any pending paragraph before adding page marker
+        flushParagraph(i);
+
+        const pageNum = pageMarkerMatch[1];
+        elements.push(
+          <div key={`page-${pageNum}-${i}`} className="my-12 flex items-center">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-600"></div>
+            <div className="mx-6 flex items-center space-x-2 rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>Page {pageNum}</span>
+            </div>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-600"></div>
+          </div>,
+        );
+        continue;
+      }
+
+      // Handle empty lines as paragraph breaks
+      if (line.trim() === "") {
+        flushParagraph(i);
+        continue;
+      }
+
+      // Add line to current paragraph buffer
+      paragraphBuffer.push(line.trim());
     }
+
+    // Flush any remaining paragraph
+    flushParagraph(lines.length);
 
     return elements;
   };
@@ -177,12 +205,16 @@ export function PdfViewer({
   return (
     <div className="flex h-full w-full flex-col">
       {/* Tab Navigation */}
-      <div className="border-border bg-card flex border-b">
+      <div className="flex border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
         <Button
           variant={activeTab === "fulltext" ? "default" : "ghost"}
           size="sm"
           onClick={() => setActiveTab("fulltext")}
-          className="data-[state=active]:border-primary rounded-none border-b-2 border-transparent"
+          className={`rounded-none border-b-2 px-6 py-3 font-medium transition-all ${
+            activeTab === "fulltext"
+              ? "border-blue-600 bg-blue-50 text-blue-600 dark:border-blue-400 dark:bg-blue-950 dark:text-blue-400"
+              : "border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+          }`}
         >
           📄 Full Text
         </Button>
@@ -190,16 +222,20 @@ export function PdfViewer({
           variant={activeTab === "pdf" ? "default" : "ghost"}
           size="sm"
           onClick={() => setActiveTab("pdf")}
-          className="data-[state=active]:border-primary rounded-none border-b-2 border-transparent"
+          className={`rounded-none border-b-2 px-6 py-3 font-medium transition-all ${
+            activeTab === "pdf"
+              ? "border-blue-600 bg-blue-50 text-blue-600 dark:border-blue-400 dark:bg-blue-950 dark:text-blue-400"
+              : "border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+          }`}
         >
           📋 PDF Viewer
         </Button>
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden bg-white dark:bg-gray-900">
         {activeTab === "fulltext" ? (
-          <div className="h-full">
+          <div className="h-full bg-gray-50 dark:bg-gray-950">
             {fullTextLoading ? (
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
@@ -220,17 +256,46 @@ export function PdfViewer({
               </div>
             ) : fullTextData ? (
               <ScrollArea className="h-full">
-                <div className="mx-auto max-w-4xl p-6">
-                  <div className="mb-6">
-                    <h2 className="text-foreground mb-2 text-xl font-semibold">
+                <div className="mx-auto max-w-3xl px-8 py-8">
+                  <div className="mb-8 border-b border-gray-200 pb-6 dark:border-gray-700">
+                    <h1 className="mb-3 text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
                       {fullTextData.fileName}
-                    </h2>
-                    <p className="text-muted-foreground text-sm">
-                      {fullTextData.pageCount} pages
-                    </p>
+                    </h1>
+                    <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                      <span className="flex items-center space-x-1">
+                        <svg
+                          className="h-4 w-4"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span>{fullTextData.pageCount} pages</span>
+                      </span>
+                      <span className="flex items-center space-x-1">
+                        <svg
+                          className="h-4 w-4"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span>Full text extracted</span>
+                      </span>
+                    </div>
                   </div>
-                  <div className="prose prose-gray max-w-none">
-                    {renderFormattedText(fullTextData.fullText)}
+                  <div className="prose prose-gray dark:prose-invert max-w-none">
+                    <div className="text-content space-y-1">
+                      {renderFormattedText(fullTextData.fullText)}
+                    </div>
                   </div>
                 </div>
               </ScrollArea>
