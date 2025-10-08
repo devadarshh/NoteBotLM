@@ -298,3 +298,13 @@ body {
     0 2px 4px -1px rgba(0, 0, 0, 0.06),
     0 0 0 1px rgba(255, 255, 255, 0.05);
 }
+
+/* Dark mode styling for citation tooltips */
+.dark .citation-tooltip {
+  background: rgba(31, 41, 55, 0.95);
+  border: 1px solid rgba(75, 85, 99, 0.8);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 2px 4px -1px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(0, 0, 0, 0.1);
+}
