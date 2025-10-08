@@ -3,10 +3,11 @@
 import { useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Plus, XIcon } from "lucide-react";
+import { Send, Plus, XIcon, FileText } from "lucide-react";
 import { api } from "@/trpc/react";
 import { fileToBase64 } from "@/lib/utils";
 import type { UploadedFile } from "@/components/chat/chat-component";
+import { DocumentSelector } from "@/components/chat/document-selector";
 
 interface ChatInputProps {
   onSubmit: (message: string) => void;
@@ -22,6 +23,7 @@ export function ChatInput({
   setUploadedFiles,
 }: ChatInputProps) {
   const [input, setInput] = useState("");
+  const [showDocumentSelector, setShowDocumentSelector] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const uploadfileMutation = api.chat.uploadFiles.useMutation();
@@ -114,6 +116,25 @@ export function ChatInput({
   const removeFile = (fileId: string) => {
     setUploadedFiles((prev) => prev.filter((file) => file.id !== fileId));
   };
+
+  const handleSelectDocuments = (documents: UploadedFile[]) => {
+    // Add selected documents to uploaded files, avoiding duplicates
+    setUploadedFiles((prev) => {
+      const existingIds = prev.map((file) => file.id);
+      const newDocuments = documents.filter(
+        (doc) => !existingIds.includes(doc.id),
+      );
+      return [...prev, ...newDocuments];
+    });
+  };
+
+  const handleOpenDocumentSelector = () => {
+    setShowDocumentSelector(true);
+  };
+
+  const handleCloseDocumentSelector = () => {
+    setShowDocumentSelector(false);
+  };
   return (
     <div className="border-t border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-black">
       <div className="mx-auto max-w-4xl">
@@ -163,7 +184,7 @@ export function ChatInput({
           </div>
         )}
         <form onSubmit={handleSubmit} className="relative">
-          <div className="flex items-center space-x-2 rounded-2xl p-1 transition-all duration-200">
+          <div className="flex items-center space-x-2 rounded-2xl border border-gray-200 bg-gray-50/50 p-2 shadow-sm backdrop-blur-sm transition-all duration-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 hover:border-gray-300 dark:border-gray-600 dark:bg-gray-800/50 dark:focus-within:border-blue-400 dark:focus-within:ring-blue-400/20 dark:hover:border-gray-500">
             <Button
               type="button"
               variant="ghost"
@@ -171,8 +192,20 @@ export function ChatInput({
               className="h-9 w-9 flex-shrink-0 cursor-pointer rounded-xl text-gray-600 transition-all duration-200 hover:bg-gray-100 hover:text-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:focus-visible:ring-blue-400/40"
               disabled={disabled}
               onClick={handleFileSelect}
+              title="Upload new document"
             >
               <Plus className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 flex-shrink-0 cursor-pointer rounded-xl text-gray-600 transition-all duration-200 hover:bg-gray-100 hover:text-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:focus-visible:ring-blue-400/40"
+              disabled={disabled}
+              onClick={handleOpenDocumentSelector}
+              title="Select from uploaded documents"
+            >
+              <FileText className="h-4 w-4" />
             </Button>
             <input
               ref={fileInputRef}
@@ -190,7 +223,7 @@ export function ChatInput({
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={disabled}
-              className="flex-1 border-0 bg-transparent px-2 text-gray-900 placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 dark:text-white dark:placeholder:text-gray-400"
+              className="flex-1 border-0 bg-transparent px-2 text-gray-900 placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 dark:px-0 dark:text-gray-100 dark:placeholder:text-gray-400"
             />
 
             <div className="flex flex-shrink-0 items-center space-x-1">
@@ -198,7 +231,7 @@ export function ChatInput({
                 type="submit"
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 cursor-pointer rounded-xl text-gray-600 transition-all duration-200 hover:bg-gray-100 hover:text-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:outline-none disabled:opacity-50 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100 dark:focus-visible:ring-blue-400/40"
+                className="h-9 w-9 cursor-pointer rounded-xl text-gray-600 transition-all duration-200 hover:bg-gray-100 hover:text-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:outline-none disabled:opacity-50 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:focus-visible:ring-blue-400/40"
                 disabled={
                   disabled ||
                   !input.trim() ||
@@ -210,6 +243,15 @@ export function ChatInput({
             </div>
           </div>
         </form>
+
+        {/* Document Selector Modal */}
+        {showDocumentSelector && (
+          <DocumentSelector
+            onSelectDocuments={handleSelectDocuments}
+            onClose={handleCloseDocumentSelector}
+            selectedDocumentIds={uploadedFiles.map((file) => file.id)}
+          />
+        )}
       </div>
     </div>
   );
