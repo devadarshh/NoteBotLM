@@ -196,25 +196,29 @@ export async function POST(req: NextRequest) {
 
     await ensureCollectionExists();
 
+    // Ensure filter is only set if allRelevantFileIds is a non-empty array of strings
+    const hasValidFileIds =
+      Array.isArray(allRelevantFileIds) &&
+      allRelevantFileIds.length > 0 &&
+      allRelevantFileIds.every((id) => typeof id === "string");
+
+    const filter = hasValidFileIds
+      ? { must: [{ key: "fileId", match: { any: allRelevantFileIds } }] }
+      : undefined;
+
     // Log Qdrant search payload for debugging
     console.log("Qdrant search payload", {
       vector,
       limit: 5,
       with_payload: true,
-      filter:
-        allRelevantFileIds && allRelevantFileIds.length > 0
-          ? { must: [{ key: "fileId", match: { any: allRelevantFileIds } }] }
-          : undefined,
+      filter,
     });
 
     const searchResult = await qdrantClient.search(collectionName, {
       vector,
       limit: 5,
       with_payload: true,
-      filter:
-        allRelevantFileIds && allRelevantFileIds.length > 0
-          ? { must: [{ key: "fileId", match: { any: allRelevantFileIds } }] }
-          : undefined,
+      filter,
     });
 
     const context = searchResult
