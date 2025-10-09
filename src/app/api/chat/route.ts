@@ -164,9 +164,11 @@ export async function POST(req: NextRequest) {
     });
 
     // Flatten embedding to ensure vector is number[]
-    const flattenEmbedding = (embedding: any): number[] => {
+    const flattenEmbedding = (embedding: unknown): number[] => {
       return Array.isArray(embedding)
-        ? embedding.flat(Infinity).filter((v) => typeof v === "number")
+        ? embedding
+            .flat(Infinity)
+            .filter((v): v is number => typeof v === "number")
         : [];
     };
 
