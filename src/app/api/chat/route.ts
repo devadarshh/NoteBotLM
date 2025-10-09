@@ -163,11 +163,14 @@ export async function POST(req: NextRequest) {
       inputs: message,
     });
 
-    // Ensure vector is flat and matches dimension
-    const vector =
-      Array.isArray(queryEmbedding) && Array.isArray(queryEmbedding[0])
-        ? queryEmbedding[0]
-        : queryEmbedding;
+    // Flatten embedding to ensure vector is number[]
+    const flattenEmbedding = (embedding: any): number[] => {
+      return Array.isArray(embedding)
+        ? embedding.flat(Infinity).filter((v) => typeof v === "number")
+        : [];
+    };
+
+    const vector = flattenEmbedding(queryEmbedding);
 
     if (!Array.isArray(vector) || vector.length !== 384) {
       console.error(
