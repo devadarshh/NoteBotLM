@@ -163,9 +163,20 @@ export async function POST(req: NextRequest) {
       inputs: message,
     });
 
-    if (!Array.isArray(queryEmbedding)) {
-      throw new Error("Failed to generate query embedding.");
+    // Ensure vector is flat and matches dimension
+    const vector =
+      Array.isArray(queryEmbedding) && Array.isArray(queryEmbedding[0])
+        ? queryEmbedding[0]
+        : queryEmbedding;
+
+    if (!Array.isArray(vector) || vector.length !== 384) {
+      console.error(
+        "Query embedding shape mismatch for Qdrant search.",
+        vector,
+      );
+      throw new Error("Query embedding shape mismatch for Qdrant search.");
     }
+
     const allRelevantFileIds =
       validFileIds.length > 0
         ? validFileIds
@@ -180,8 +191,19 @@ export async function POST(req: NextRequest) {
 
     await ensureCollectionExists();
 
+    // Log Qdrant search payload for debugging
+    console.log("Qdrant search payload", {
+      vector,
+      limit: 5,
+      with_payload: true,
+      filter:
+        allRelevantFileIds && allRelevantFileIds.length > 0
+          ? { must: [{ key: "fileId", match: { any: allRelevantFileIds } }] }
+          : undefined,
+    });
+
     const searchResult = await qdrantClient.search(collectionName, {
-      vector: queryEmbedding as number[],
+      vector,
       limit: 5,
       with_payload: true,
       filter:
