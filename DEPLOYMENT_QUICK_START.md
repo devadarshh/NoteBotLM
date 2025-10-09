@@ -19,6 +19,7 @@ vercel login
 You have two options:
 
 ### Option A: Use Vercel Dashboard (Recommended)
+
 1. Go to [vercel.com/dashboard](https://vercel.com/dashboard)
 2. Connect your GitHub repository
 3. Add these environment variables in project settings:
@@ -83,23 +84,28 @@ vercel --prod
 ## 📋 Step 5: Post-Deployment Setup
 
 ### 5.1 Generate AUTH_SECRET
+
 ```bash
 npx auth secret
 ```
+
 Copy this value to your Vercel environment variables.
 
 ### 5.2 Update Google OAuth
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Navigate to APIs & Services > Credentials
 3. Edit your OAuth 2.0 Client ID
 4. Add authorized redirect URI: `https://your-app.vercel.app/api/auth/callback/google`
 
 ### 5.3 Update Supabase CORS
+
 1. Go to your Supabase dashboard
 2. Navigate to Settings > API
 3. Add your Vercel domain to allowed origins
 
 ### 5.4 Run Database Migrations
+
 ```bash
 # Pull environment variables
 vercel env pull .env.production
@@ -125,6 +131,7 @@ npx prisma migrate deploy
 4. **OAuth Errors**: Ensure redirect URIs are correctly set
 
 ### Debug Commands:
+
 ```bash
 # Check deployment logs
 vercel logs
@@ -146,6 +153,7 @@ vercel --prod --force
 ## 🎉 You're Done!
 
 Your NoteBotLM app is now deployed on Vercel with:
+
 - ✅ Upstash Redis for job queuing
 - ✅ Qdrant Cloud for vector search
 - ✅ Supabase for database and file storage

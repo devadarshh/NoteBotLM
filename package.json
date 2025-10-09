@@ -10,7 +10,7 @@
     "db:migrate": "prisma migrate dev --create-only",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
-    "dev": "concurrently \"npm run worker\" \"next dev --turbo\" --names \"worker,next\" --prefix-colors \"blue,green\"",
+    "dev": "concurrently \"npm run worker\" \"next dev\" --names \"worker,next\" --prefix-colors \"blue,green\"",
     "worker": "tsx watch src/server/api/routers/chat/worker.ts",
     "worker:prod": "tsx src/server/api/routers/chat/worker.ts",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",

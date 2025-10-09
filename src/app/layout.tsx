@@ -1,7 +1,6 @@
 import "@/styles/globals.css";
 
 import { type Metadata } from "next";
-import { Inter } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 
 import { TRPCReactProvider } from "@/trpc/react";
@@ -30,17 +29,11 @@ export const metadata: Metadata = {
   },
 };
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-geist-sans",
-  display: "swap",
-});
-
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable}`} suppressHydrationWarning>
+    <html lang="en" className="font-sans" suppressHydrationWarning>
       <body>
         <ThemeProvider
           attribute="class"

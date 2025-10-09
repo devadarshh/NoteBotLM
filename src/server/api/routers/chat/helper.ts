@@ -12,9 +12,12 @@ interface FileUploadResponse {
 }
 
 const fileQueue = new Queue("file-upload-queue", {
-  connection: process.env.UPSTASH_REDIS_REST_URL 
+  connection: process.env.UPSTASH_REDIS_REST_URL
     ? {
-        host: process.env.UPSTASH_REDIS_REST_URL.replace("https://", "").replace("http://", ""),
+        host: process.env.UPSTASH_REDIS_REST_URL.replace(
+          "https://",
+          "",
+        ).replace("http://", ""),
         port: 6380,
         password: process.env.UPSTASH_REDIS_REST_TOKEN,
         tls: {},

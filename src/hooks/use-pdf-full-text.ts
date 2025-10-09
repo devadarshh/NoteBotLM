@@ -31,12 +31,12 @@ export function usePdfFullText(fileId: string | null): UsePdfFullTextResult {
 
       try {
         const response = await fetch(`/api/pdf/full-text?fileId=${fileId}`);
-        
+
         if (!response.ok) {
           throw new Error(`Failed to fetch PDF text: ${response.statusText}`);
         }
 
-        const result = await response.json() as PdfFullTextData;
+        const result = (await response.json()) as PdfFullTextData;
         setData(result);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error occurred");
