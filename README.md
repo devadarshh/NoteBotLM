@@ -5,8 +5,7 @@ Upload any PDF to generate dynamic quizzes (MCQs, SAQs, LAQs) tailored to the co
 Engage with an AI tutor that provides RAG-based answers with citations from the source text.
 Track your progress and deepen your understanding for a more effective learning experience.
 
-**🌐 Live Demo:** [Access NoteBot LM](https://trelloidapp.vercel.app)  
-**🎬 Project Walkthrough:** [Watch on YouTube](https://youtu.be/RoMS51P2jRA)
+**🌐 Live Demo:** [Access NoteBot LM](https://www.notebotlm.xyz)
 
 ## ✅ Core Features
 
@@ -87,37 +86,29 @@ npm run dev
 
 ## 📸 Screenshots
 
-### Landing Page
+### Auth Page
 
-![Landing Page](apps/web/assets/screenshots/landing_page.png)
+![Auth Page](assets/screenshots/auth.png)
 
-### Sign In Page
+### Dashboard Page
 
-![Sign In Page](apps/web/assets/screenshots/sign_in_page.png)
+![Dashboard Page](assets/screenshots/dashboardd.png)
 
-### Organization Page
+### Document Page
 
-![Organization Page](apps/web/assets/screenshots/organizaions_page.png)
+![Document Page](/assets/screenshots/docs.png)
 
-### Board Page
+### Quiz Page
 
-![Board Page](apps/web/assets/screenshots/board_page.png)
+![Quiz Page](/assets/screenshots/quiz.png)
 
-### Card Page
+### Chat Page
 
-![Card Page](apps/web/assets/screenshots/card_modal.png)
+![Chat Page](/assets/screenshots/chat.png)
 
-### Settings Page
+### Light Mode Page
 
-![Settings Page](apps/web/assets/screenshots/settings_page.png)
-
-### Billing Page
-
-![Billing Page](apps/web/assets/screenshots/pro_modal.png)
-
-### Activity Page
-
-![Activity Page](apps/web/assets/screenshots/activity_page.png)
+![Light Mode ](/assets/screenshots/light_mode.png)
 
 ## 📄 License
 
