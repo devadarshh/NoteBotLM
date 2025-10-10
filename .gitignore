@@ -21,6 +21,7 @@ next-env.d.ts
 # Ignore environment files
 .env
 .env.*
+.env.production
 
 # production
 /build
