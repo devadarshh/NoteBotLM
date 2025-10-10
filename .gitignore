@@ -18,6 +18,10 @@ db.sqlite
 /out/
 next-env.d.ts
 
+# Ignore environment files
+.env
+.env.*
+
 # production
 /build
 
@@ -35,9 +39,6 @@ yarn-error.log*
 # do not commit any .env files to git, except for the .env.example file. https://create.t3.gg/en/usage/env-variables#using-environment-variables
 .env
 .env*.local
-.env.backup
-.env.production
-.env.example
 
 
 # vercel
