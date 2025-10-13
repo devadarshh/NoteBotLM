@@ -91,6 +91,13 @@ const requestSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    // Debug Redis and Qdrant env
+    console.log("REDIS_URL:", process.env.REDIS_URL);
+    console.log("QDRANT_URL:", process.env.QDRANT_URL);
+    console.log(
+      "QDRANT_API_KEY:",
+      process.env.QDRANT_API_KEY ? "set" : "not set",
+    );
     const session = await auth();
 
     if (!session?.user?.id) {
@@ -180,15 +187,36 @@ export async function POST(req: NextRequest) {
 
     await ensureCollectionExists();
 
-    const searchResult = await qdrantClient.search(collectionName, {
-      vector: queryEmbedding as number[],
-      limit: 5,
-      with_payload: true,
+    // Debug Qdrant search payload
+    console.log("Qdrant search payload:", {
+      collectionName,
+      vectorLength: Array.isArray(queryEmbedding)
+        ? queryEmbedding.length
+        : "not-an-array",
+      vectorSample: Array.isArray(queryEmbedding)
+        ? queryEmbedding.slice(0, 5)
+        : queryEmbedding,
       filter:
         allRelevantFileIds && allRelevantFileIds.length > 0
           ? { must: [{ key: "fileId", match: { any: allRelevantFileIds } }] }
           : undefined,
     });
+
+    let searchResult;
+    try {
+      searchResult = await qdrantClient.search(collectionName, {
+        vector: queryEmbedding as number[],
+        limit: 5,
+        with_payload: true,
+        filter:
+          allRelevantFileIds && allRelevantFileIds.length > 0
+            ? { must: [{ key: "fileId", match: { any: allRelevantFileIds } }] }
+            : undefined,
+      });
+    } catch (err) {
+      console.error("Qdrant search error:", err);
+      throw err;
+    }
 
     const context = searchResult
       .map((result, index) => {

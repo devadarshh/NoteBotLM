@@ -48,22 +48,24 @@ const ensureCollectionExists = async () => {
 const getConnectionOptions = ():
   | import("bullmq").ConnectionOptions
   | undefined => {
-  if (process.env.UPSTASH_REDIS_REST_URL) {
-    return {
-      host: process.env.UPSTASH_REDIS_REST_URL.replace("https://", "").replace(
-        "http://",
-        "",
-      ),
-      port: 6380,
-      password: process.env.UPSTASH_REDIS_REST_TOKEN,
-      tls: {},
-    };
+  if (process.env.REDIS_URL) {
+    try {
+      return new IORedis(process.env.REDIS_URL);
+    } catch (err) {
+      console.error(
+        "Failed to connect to Redis with REDIS_URL:",
+        process.env.REDIS_URL,
+        err,
+      );
+      throw err;
+    }
   } else if (process.env.REDIS_HOST && process.env.REDIS_PORT) {
     return {
       host: process.env.REDIS_HOST,
       port: parseInt(process.env.REDIS_PORT),
     };
   }
+  console.error("No Redis connection info found in environment variables.");
   return undefined;
 };
 
@@ -133,11 +135,22 @@ const worker = new Worker<FileJobData>(
       };
     });
 
-    await qdrantClient.upsert(collectionName, { points });
+    // Debug Qdrant upsert payload
+    console.log("Qdrant upsert payload:", {
+      collectionName,
+      pointsSample: points.slice(0, 1),
+      pointsCount: points.length,
+    });
 
-    console.log(
-      ` Successfully processed and stored HF embeddings for file ID: ${fileId}`,
-    );
+    try {
+      await qdrantClient.upsert(collectionName, { points });
+      console.log(
+        `Successfully processed and stored HF embeddings for file ID: ${fileId}`,
+      );
+    } catch (err) {
+      console.error("Qdrant upsert error:", err);
+      throw err;
+    }
   },
   workerOptions,
 );
