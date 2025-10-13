@@ -116,7 +116,7 @@ const worker = new Worker<FileJobData>(
             "https://",
             "",
           ).replace("http://", ""),
-          port: 6380,
+          port: 6379,
           password: process.env.UPSTASH_REDIS_REST_TOKEN,
           tls: {},
         }

@@ -120,7 +120,7 @@ export default function DocumentsPage() {
   const handleDeleteFile = async (fileId: string) => {
     try {
       await deleteFileMutation.mutateAsync({ fileId });
-      void refetchFiles(); 
+      void refetchFiles();
     } catch (error) {
       console.error("Error deleting file:", error);
     }
@@ -145,6 +145,15 @@ export default function DocumentsPage() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="cursor-pointer text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                onClick={() => router.push("/dashboard")}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Back to Dashboard</span>
+              </Button>
               <div className="hidden items-center space-x-2 text-sm text-gray-500 lg:flex dark:text-gray-400">
                 <Calendar className="h-4 w-4" />
                 <span className="text-xs">
@@ -166,6 +175,28 @@ export default function DocumentsPage() {
                 <span className="hidden sm:inline">Sign Out</span>
               </Button>
             </div>
+            {/* <div className="flex items-center space-x-4">
+              <div className="hidden items-center space-x-2 text-sm text-gray-500 lg:flex dark:text-gray-400">
+                <Calendar className="h-4 w-4" />
+                <span className="text-xs">
+                  {new Date().toLocaleDateString("en-US", {
+                    weekday: "long",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
+              </div>
+              <ThemeToggle />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="cursor-pointer text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                onClick={handleSignOut}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </Button>
+            </div> */}
           </div>
         </div>
       </header>
@@ -173,14 +204,6 @@ export default function DocumentsPage() {
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => router.push("/dashboard")}
-            className="mb-4 cursor-pointer text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             My Documents
           </h1>
