@@ -11,22 +11,31 @@ interface FileUploadResponse {
   url?: string;
 }
 
-const fileQueue = new Queue("file-upload-queue", {
-  connection: process.env.UPSTASH_REDIS_REST_URL
-    ? {
-        host: process.env.UPSTASH_REDIS_REST_URL.replace(
-          "https://",
-          "",
-        ).replace("http://", ""),
-        port: 6380,
-        password: process.env.UPSTASH_REDIS_REST_TOKEN,
-        tls: {},
-      }
-    : {
-        host: process.env.REDIS_HOST ?? "localhost",
-        port: parseInt(process.env.REDIS_PORT ?? "6379"),
-      },
-});
+const getRedisConnection = () => {
+  if (process.env.UPSTASH_REDIS_REST_URL) {
+    return {
+      host: process.env.UPSTASH_REDIS_REST_URL.replace(
+        "https://",
+        "",
+      ).replace("http://", ""),
+      port: 6380,
+      password: process.env.UPSTASH_REDIS_REST_TOKEN,
+      tls: {},
+    };
+  } else if (process.env.REDIS_HOST && process.env.REDIS_PORT) {
+    return {
+      host: process.env.REDIS_HOST,
+      port: parseInt(process.env.REDIS_PORT),
+    };
+  }
+  return null;
+};
+
+const redisConnection = getRedisConnection();
+
+const fileQueue = redisConnection
+  ? new Queue("file-upload-queue", { connection: redisConnection })
+  : new Queue("file-upload-queue");
 
 export async function uploadToSupabase(
   file: File,

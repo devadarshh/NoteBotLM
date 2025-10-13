@@ -1,4 +1,4 @@
-import { Worker } from "bullmq";
+import type { WorkerOptions } from "bullmq";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { HfInference } from "@huggingface/inference";
@@ -6,6 +6,8 @@ import { QdrantClient } from "@qdrant/js-client-rest";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@/server/db";
 import { supabase } from "@/lib/supabase";
+import { Worker } from "bullmq";
+import IORedis from "ioredis";
 
 interface FileJobData {
   fileId: string;
@@ -13,7 +15,7 @@ interface FileJobData {
 
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 const qdrantClient = new QdrantClient({
-  url: process.env.QDRANT_URL ?? "http://localhost:6333",
+  url: process.env.QDRANT_URL,
   apiKey: process.env.QDRANT_API_KEY,
 });
 
@@ -41,6 +43,35 @@ const ensureCollectionExists = async () => {
     console.error("Error ensuring collection exists:", error);
     process.exit(1);
   }
+};
+
+const getConnectionOptions = ():
+  | import("bullmq").ConnectionOptions
+  | undefined => {
+  if (process.env.UPSTASH_REDIS_REST_URL) {
+    return {
+      host: process.env.UPSTASH_REDIS_REST_URL.replace("https://", "").replace(
+        "http://",
+        "",
+      ),
+      port: 6380,
+      password: process.env.UPSTASH_REDIS_REST_TOKEN,
+      tls: {},
+    };
+  } else if (process.env.REDIS_HOST && process.env.REDIS_PORT) {
+    return {
+      host: process.env.REDIS_HOST,
+      port: parseInt(process.env.REDIS_PORT),
+    };
+  }
+  return undefined;
+};
+
+const connectionOptions = getConnectionOptions();
+
+const workerOptions: WorkerOptions = {
+  concurrency: 10,
+  connection: connectionOptions ?? {},
 };
 
 const worker = new Worker<FileJobData>(
@@ -108,23 +139,7 @@ const worker = new Worker<FileJobData>(
       ` Successfully processed and stored HF embeddings for file ID: ${fileId}`,
     );
   },
-  {
-    concurrency: 10,
-    connection: process.env.UPSTASH_REDIS_REST_URL
-      ? {
-          host: process.env.UPSTASH_REDIS_REST_URL.replace(
-            "https://",
-            "",
-          ).replace("http://", ""),
-          port: 6379,
-          password: process.env.UPSTASH_REDIS_REST_TOKEN,
-          tls: {},
-        }
-      : {
-          host: process.env.REDIS_HOST ?? "localhost",
-          port: parseInt(process.env.REDIS_PORT ?? "6379"),
-        },
-  },
+  workerOptions,
 );
 
 // Export worker to prevent unused variable warning

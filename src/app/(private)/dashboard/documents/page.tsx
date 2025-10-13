@@ -33,6 +33,7 @@ export default function DocumentsPage() {
   const handleSignOut = () => {
     void signOut({ callbackUrl: "/auth/signin" });
   };
+
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
@@ -43,6 +44,7 @@ export default function DocumentsPage() {
   } = api.chat.listFiles.useQuery();
   const uploadfileMutation = api.chat.uploadFiles.useMutation();
   const deleteFileMutation = api.chat.deleteFile.useMutation();
+
   const handleFileUpload = async (selectedFiles: FileList) => {
     const newFiles = Array.from(selectedFiles).map((file) => ({
       id: crypto.randomUUID(),
@@ -53,53 +55,48 @@ export default function DocumentsPage() {
 
     setUploadedFiles((prev) => [...prev, ...newFiles]);
 
-    const uploadPromises = Array.from(selectedFiles).map(
-      async (file, index) => {
-        try {
-          const base64 = await fileToBase64(file);
+    const uploadPromises = newFiles.map(async (newFile) => {
+      try {
+        const originalFile = Array.from(selectedFiles).find(
+          (f) => f.name === newFile.name,
+        );
+        if (!originalFile) throw new Error("Original file not found");
 
-          const {
-            files: [uploadedFile],
-          } = await uploadfileMutation.mutateAsync({
-            base64Files: [
-              {
-                name: file.name,
-                type: file.type,
-                base64,
-              },
-            ],
-          });
+        const base64 = await fileToBase64(originalFile);
 
-          if (uploadedFile?.id) {
-            setUploadedFiles((prev) =>
-              prev.map((f) => {
-                if (f.id === newFiles[index]?.id) {
-                  return { ...f, id: uploadedFile.id, isUploading: false };
-                }
-                return f;
-              }),
-            );
-            void refetchFiles();
-          } else {
-            setUploadedFiles((prev) =>
-              prev.filter((f) => f.id !== newFiles[index]?.id),
-            );
-          }
-        } catch (error) {
-          console.error("Error uploading file", error);
-          setUploadedFiles((prev) =>
-            prev.filter((f) => f.id !== newFiles[index]?.id),
-          );
-        }
-      },
-    );
+        await uploadfileMutation.mutateAsync({
+          base64Files: [
+            {
+              name: originalFile.name,
+              type: originalFile.type,
+              base64,
+            },
+          ],
+        });
 
+        // Mark the file as 'done' uploading in the temporary state
+        setUploadedFiles((prev) =>
+          prev.map((f) =>
+            f.id === newFile.id ? { ...f, isUploading: false } : f,
+          ),
+        );
+      } catch (error) {
+        console.error("Error uploading file:", newFile.name, error);
+        // On error, remove it from the uploading list
+        setUploadedFiles((prev) => prev.filter((f) => f.id !== newFile.id));
+      }
+    });
+
+    // Wait for ALL uploads to finish.
     await Promise.allSettled(uploadPromises);
 
-    setTimeout(() => {
-      setUploadedFiles([]);
-    }, 2000);
+    // NOW, refetch the document list just ONCE.
+    await refetchFiles();
+
+    // FINALLY, clear the temporary uploading state.
+    setUploadedFiles([]);
   };
+
   const handleFileInputChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -126,9 +123,13 @@ export default function DocumentsPage() {
     }
   };
 
-  const removeFile = (fileId: string) => {
-    setUploadedFiles((prev) => prev.filter((file) => file.id !== fileId));
-  };
+  // --- DERIVED STATE FOR RENDERING ---
+  // This is the single source of truth for what should be in the "Uploading Files" card.
+  const filesCurrentlyUploading = uploadedFiles.filter((file) => {
+    const isInDocuments = documents.some((doc) => doc.name === file.name);
+    return file.isUploading && !isInDocuments;
+  });
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md dark:border-gray-700 dark:bg-gray-900/80">
@@ -175,28 +176,6 @@ export default function DocumentsPage() {
                 <span className="hidden sm:inline">Sign Out</span>
               </Button>
             </div>
-            {/* <div className="flex items-center space-x-4">
-              <div className="hidden items-center space-x-2 text-sm text-gray-500 lg:flex dark:text-gray-400">
-                <Calendar className="h-4 w-4" />
-                <span className="text-xs">
-                  {new Date().toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </span>
-              </div>
-              <ThemeToggle />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="cursor-pointer text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                onClick={handleSignOut}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Sign Out</span>
-              </Button>
-            </div> */}
           </div>
         </div>
       </header>
@@ -225,13 +204,18 @@ export default function DocumentsPage() {
               </div>
             </div>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <Input
-                type="file"
-                accept="application/pdf"
-                multiple
-                className="flex-1 cursor-pointer border-gray-200 focus-visible:ring-blue-600 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                onChange={handleFileInputChange}
-              />
+              <div className="relative flex-1">
+                <div className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2">
+                  <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <Input
+                  type="file"
+                  accept="application/pdf"
+                  multiple
+                  className="flex-1 cursor-pointer border-gray-200 pl-10 file:mr-3 file:pl-2 focus-visible:ring-blue-600 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  onChange={handleFileInputChange}
+                />
+              </div>
               <Button
                 className="cursor-pointer bg-blue-600 hover:bg-blue-700"
                 onClick={handleUploadClick}
@@ -270,43 +254,30 @@ export default function DocumentsPage() {
           </CardContent>
         </Card>
 
-        {uploadedFiles.length > 0 && (
+        {/* --- FIXED UPLOADING FILES CARD --- */}
+        {filesCurrentlyUploading.length > 0 && (
           <Card className="mb-8 border border-amber-200 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/50">
             <CardContent className="p-6">
               <h3 className="mb-4 text-lg font-semibold text-amber-800 dark:text-amber-200">
                 Uploading Files
               </h3>
               <div className="space-y-3">
-                {uploadedFiles.map((file) => (
+                {filesCurrentlyUploading.map((file) => (
                   <div
                     key={file.id}
                     className="flex items-center gap-3 rounded-lg bg-white p-3 dark:bg-gray-800"
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/50">
-                      {file.isUploading ? (
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-amber-600 border-t-transparent dark:border-amber-400" />
-                      ) : (
-                        <FileText className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                      )}
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-amber-600 border-t-transparent dark:border-amber-400" />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-amber-900 dark:text-amber-100">
                         {file.name}
                       </p>
                       <p className="text-sm text-amber-700 dark:text-amber-300">
-                        {file.isUploading ? "Uploading..." : "Upload complete"}
+                        Uploading...
                       </p>
                     </div>
-                    {!file.isUploading && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeFile(file.id)}
-                        className="cursor-pointer text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-200"
-                      >
-                        ×
-                      </Button>
-                    )}
                   </div>
                 ))}
               </div>

@@ -163,25 +163,9 @@ export async function POST(req: NextRequest) {
       inputs: message,
     });
 
-    // Flatten embedding to ensure vector is number[]
-    const flattenEmbedding = (embedding: unknown): number[] => {
-      return Array.isArray(embedding)
-        ? embedding
-            .flat(Infinity)
-            .filter((v): v is number => typeof v === "number")
-        : [];
-    };
-
-    const vector = flattenEmbedding(queryEmbedding);
-
-    if (!Array.isArray(vector) || vector.length !== 384) {
-      console.error(
-        "Query embedding shape mismatch for Qdrant search.",
-        vector,
-      );
-      throw new Error("Query embedding shape mismatch for Qdrant search.");
+    if (!Array.isArray(queryEmbedding)) {
+      throw new Error("Failed to generate query embedding.");
     }
-
     const allRelevantFileIds =
       validFileIds.length > 0
         ? validFileIds
@@ -196,29 +180,14 @@ export async function POST(req: NextRequest) {
 
     await ensureCollectionExists();
 
-    // Ensure filter is only set if allRelevantFileIds is a non-empty array of strings
-    const hasValidFileIds =
-      Array.isArray(allRelevantFileIds) &&
-      allRelevantFileIds.length > 0 &&
-      allRelevantFileIds.every((id) => typeof id === "string");
-
-    const filter = hasValidFileIds
-      ? { must: [{ key: "fileId", match: { any: allRelevantFileIds } }] }
-      : undefined;
-
-    // Log Qdrant search payload for debugging
-    console.log("Qdrant search payload", {
-      vector,
-      limit: 5,
-      with_payload: true,
-      filter,
-    });
-
     const searchResult = await qdrantClient.search(collectionName, {
-      vector,
+      vector: queryEmbedding as number[],
       limit: 5,
       with_payload: true,
-      filter,
+      filter:
+        allRelevantFileIds && allRelevantFileIds.length > 0
+          ? { must: [{ key: "fileId", match: { any: allRelevantFileIds } }] }
+          : undefined,
     });
 
     const context = searchResult
