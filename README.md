@@ -90,25 +90,29 @@ npm run dev
 
 ![Auth Page](assets/screenshots/auth.png)
 
-### Dashboard Page
+### Dashboard
 
-![Dashboard Page](assets/screenshots/dashboardd.png)
+![Dashboard](assets/screenshots/dashboard.png)
 
-### Document Page
+### Documents
 
-![Document Page](/assets/screenshots/docs.png)
+![Documents](assets/screenshots/document.png)
 
-### Quiz Page
+### Quiz
 
-![Quiz Page](/assets/screenshots/quiz.png)
+![Quiz](assets/screenshots/quiz.png)
 
-### Chat Page
+### AI Tutor
 
-![Chat Page](/assets/screenshots/chat.png)
+![AI Tutor](assets/screenshots/aitutor.png)
 
-### Light Mode Page
+### Analytics
 
-![Light Mode ](/assets/screenshots/light_mode.png)
+![Analytics](assets/screenshots/analytics.png)
+
+### Light Mode
+
+![Light Mode](assets/screenshots/lightmode.png)
 
 ## 📄 License
 
