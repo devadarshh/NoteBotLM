@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" fill="none" role="img" aria-label="NoteBot LM">
+  <rect width="192" height="192" rx="42" fill="#3A3834"/>
+  <path
+    d="M192 60C192 26.863 164.137 0 131 0H192V60Z"
+    fill="#2F7A6D"
+    opacity="0.45"
+  />
+  <text
+    x="96"
+    y="126"
+    text-anchor="middle"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-style="italic"
+    font-size="102"
+    fill="#FAFAF8"
+  >
+    N
+  </text>
+</svg>
