@@ -11,6 +11,7 @@
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "dev": "concurrently \"npm run worker\" \"next dev\" --names \"worker,next\" --prefix-colors \"blue,green\"",
+    "dev:ui": "next dev",
     "worker": "tsx watch src/server/api/routers/chat/worker.ts",
     "worker:prod": "tsx src/server/api/routers/chat/worker.ts",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",

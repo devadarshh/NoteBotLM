@@ -183,12 +183,16 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
       <ResizablePanelGroup direction="horizontal" className="min-h-0 flex-1">
         <ResizablePanel defaultSize={citationData ? 60 : 100} minSize={40}>
           <div className="flex h-full min-h-0 flex-col">
-            <ScrollArea className="min-h-0 flex-1 p-4" ref={scrollAreaRef}>
+            <ScrollArea className="min-h-0 flex-1 px-4 py-6" ref={scrollAreaRef}>
               {messages.length === 0 ? (
-                <div className="flex h-full w-full flex-col items-center justify-center text-center">
-                  <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
+                <div className="flex h-full w-full flex-col items-center justify-center px-6 text-center">
+                  <p className="font-display text-foreground text-3xl tracking-tight sm:text-4xl">
                     What would you like to research?
-                  </h1>
+                  </p>
+                  <p className="text-muted-foreground mt-3 max-w-sm text-sm leading-relaxed">
+                    Ask questions about your documents, explore topics, or
+                    upload PDFs for cited answers.
+                  </p>
                 </div>
               ) : (
                 <div className="mx-auto max-w-4xl space-y-4">
@@ -237,11 +241,11 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                           }`}
                         >
                           <div
-                            className={`rounded-lg px-4 py-2 ${
+                            className={
                               message.role === "user"
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-card border-border text-card-foreground border"
-                            }`}
+                                ? "chat-message-user max-w-[85%]"
+                                : "chat-message-assistant max-w-full"
+                            }
                           >
                             {/* Display attached files */}
                             {filesToDisplay.length > 0 && (
@@ -297,7 +301,7 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                                         <Tooltip>
                                           <TooltipTrigger asChild>
                                             <span
-                                              className="citation-badge ml-0.5 inline-flex h-5 w-auto min-w-[1.2rem] cursor-pointer items-center justify-center rounded-full border border-blue-200 bg-blue-50 px-1.5 text-xs font-medium text-blue-700 transition-all duration-200 hover:scale-105 hover:border-blue-300 hover:bg-blue-100 hover:shadow-sm active:scale-95 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-400 dark:hover:border-blue-700 dark:hover:bg-blue-900/50"
+                                    className="border-border bg-muted text-accent hover:bg-accent/10 ml-0.5 inline-flex h-5 w-auto min-w-[1.2rem] cursor-pointer items-center justify-center rounded-md border px-1.5 text-xs font-medium transition-colors"
                                               onClick={() =>
                                                 handleCitationClick({
                                                   messageId: message.id,
@@ -346,25 +350,10 @@ export function ChatComponent({ chatId }: ChatComponentProps) {
                   {/* Loading indicator before response starts */}
                   {isWaitingForResponse && (
                     <div className="flex justify-start">
-                      <div className="flex space-x-2">
-                        <div className="bg-card border-border text-card-foreground rounded-lg border px-4 py-3">
-                          <div className="flex items-center space-x-2">
-                            <div className="flex space-x-1">
-                              <div
-                                className="bg-primary h-2 w-2 animate-bounce rounded-full"
-                                style={{ animationDelay: "0ms" }}
-                              ></div>
-                              <div
-                                className="bg-primary h-2 w-2 animate-bounce rounded-full"
-                                style={{ animationDelay: "150ms" }}
-                              ></div>
-                              <div
-                                className="bg-primary h-2 w-2 animate-bounce rounded-full"
-                                style={{ animationDelay: "300ms" }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
+                      <div className="flex items-center gap-1.5 px-1 py-3">
+                        <span className="bg-muted-foreground/40 h-1.5 w-1.5 animate-bounce rounded-full [animation-delay:0ms]" />
+                        <span className="bg-muted-foreground/40 h-1.5 w-1.5 animate-bounce rounded-full [animation-delay:150ms]" />
+                        <span className="bg-muted-foreground/40 h-1.5 w-1.5 animate-bounce rounded-full [animation-delay:300ms]" />
                       </div>
                     </div>
                   )}

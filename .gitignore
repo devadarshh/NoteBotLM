@@ -21,8 +21,12 @@ next-env.d.ts
 # Ignore environment files
 .env
 .env.*
+!.env.example
 .env.production
 .env.backup
+
+# npm cache (local)
+/npm-cache
 
 # production
 /build

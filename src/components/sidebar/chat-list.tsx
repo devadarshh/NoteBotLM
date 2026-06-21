@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
+
 function formatRelativeTime(date: Date): string {
   const now = new Date();
   const diffInMs = now.getTime() - date.getTime();
@@ -82,12 +83,9 @@ export function ChatList() {
   if (isLoading) {
     return (
       <ScrollArea className="flex-1">
-        <div className="space-y-2 px-2">
+        <div className="space-y-1.5 px-1">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-12 animate-pulse rounded-lg bg-gray-100"
-            />
+            <div key={i} className="bg-muted h-9 animate-pulse rounded-md" />
           ))}
         </div>
       </ScrollArea>
@@ -97,7 +95,7 @@ export function ChatList() {
   if (error) {
     return (
       <ScrollArea className="flex-1">
-        <div className="px-2 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+        <div className="text-muted-foreground px-2 py-4 text-center text-xs">
           Failed to load chats
         </div>
       </ScrollArea>
@@ -107,8 +105,10 @@ export function ChatList() {
   if (!chats || chats.length === 0) {
     return (
       <ScrollArea className="flex-1">
-        <div className="px-2 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-          No chats yet. Start a new conversation!
+        <div className="text-muted-foreground px-2 py-4 text-center text-xs leading-relaxed">
+          No conversations yet.
+          <br />
+          Start a new chat above.
         </div>
       </ScrollArea>
     );
@@ -118,36 +118,30 @@ export function ChatList() {
 
   return (
     <ScrollArea className="flex-1">
-      <div className="space-y-5">
+      <div className="space-y-4">
         {sections.map((section) => (
           <div key={section.title}>
-            <div className="px-2 pt-3 pb-2 first:pt-0">
-              <h3 className="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
-                {section.title}
-              </h3>
-            </div>
+            <p className="section-label mb-1.5 px-2">{section.title}</p>
             {section.chats.map((chat) => (
               <Button
                 key={chat.id}
                 asChild
                 variant="ghost"
                 className={cn(
-                  "relative h-auto w-full justify-start px-3 py-2.5 text-left font-normal",
-                  "rounded-md text-sm text-gray-700 transition-colors duration-150",
-                  "hover:bg-blue-50 hover:text-gray-900 hover:ring-1 hover:ring-blue-200 dark:text-gray-300 dark:hover:bg-blue-950/50 dark:hover:text-white dark:hover:ring-blue-800",
+                  "text-muted-foreground h-auto w-full justify-start px-2 py-2 text-left font-normal",
+                  "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md text-sm",
                   currentChatId === chat.id &&
-                    "bg-blue-50 text-gray-900 ring-1 ring-blue-200 dark:bg-blue-950/50 dark:text-white dark:ring-blue-800",
+                    "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
                 )}
                 size="sm"
               >
                 <Link href={`/chat/${chat.id}`} className="block truncate">
                   <div className="truncate group-data-[collapsible=icon]:hidden">
-                    {chat.title ?? "New Chat"}
+                    {chat.title ?? "New chat"}
                   </div>
-                  <div className="mt-0.5 text-xs text-gray-500 group-data-[collapsible=icon]:hidden dark:text-gray-400">
+                  <div className="text-muted-foreground mt-0.5 text-[11px] group-data-[collapsible=icon]:hidden">
                     {formatRelativeTime(new Date(chat.updatedAt))}
                   </div>
-                  <div className="hidden h-2 w-2 rounded-full bg-blue-600 group-data-[collapsible=icon]:block dark:bg-blue-400" />
                 </Link>
               </Button>
             ))}

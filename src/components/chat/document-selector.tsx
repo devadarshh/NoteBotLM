@@ -4,8 +4,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { api } from "@/trpc/react";
-import { FileText, Check, X } from "lucide-react";
+import { FileText, Check, X, Loader2 } from "lucide-react";
 import type { UploadedFile } from "@/components/chat/chat-component";
+import { cn } from "@/lib/utils";
 
 interface DocumentSelectorProps {
   onSelectDocuments: (documents: UploadedFile[]) => void;
@@ -22,14 +23,12 @@ export function DocumentSelector({
 
   const { data: files, isLoading } = api.chat.listFiles.useQuery();
 
-  const handleToggleDocument = (fileId: string, _fileName: string) => {
-    setSelectedIds((prev) => {
-      if (prev.includes(fileId)) {
-        return prev.filter((id) => id !== fileId);
-      } else {
-        return [...prev, fileId];
-      }
-    });
+  const handleToggleDocument = (fileId: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(fileId)
+        ? prev.filter((id) => id !== fileId)
+        : [...prev, fileId],
+    );
   };
 
   const handleConfirmSelection = () => {
@@ -64,112 +63,92 @@ export function DocumentSelector({
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div className="mx-4 w-full max-w-2xl rounded-lg bg-white p-6 dark:bg-gray-900">
-          <div className="flex items-center justify-center py-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
-            <span className="ml-3 text-gray-600 dark:text-gray-300">
-              Loading documents...
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="mx-4 flex max-h-[80vh] w-full max-w-2xl flex-col rounded-lg bg-white shadow-xl dark:bg-gray-900">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 p-6 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Select Documents
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+      <div className="surface-card flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden">
+        <div className="border-border flex items-center justify-between border-b px-5 py-4">
+          <h2 className="text-foreground text-sm font-medium">
+            Select documents
           </h2>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="h-8 w-8 p-0"
+            className="h-7 w-7 p-0"
           >
             <X className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* Document List */}
-        <ScrollArea className="flex-1 p-6">
-          {!files || files.length === 0 ? (
-            <div className="py-8 text-center">
-              <FileText className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-              <p className="text-gray-500 dark:text-gray-400">
-                No documents found. Upload some documents first.
+        <ScrollArea className="flex-1 p-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="text-muted-foreground h-5 w-5 animate-spin" />
+            </div>
+          ) : !files || files.length === 0 ? (
+            <div className="py-12 text-center">
+              <FileText className="text-muted-foreground mx-auto mb-3 h-10 w-10" />
+              <p className="text-muted-foreground text-sm">
+                No documents found. Upload some first.
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {files.map((file) => {
                 const isSelected = selectedIds.includes(file.id);
                 return (
-                  <div
+                  <button
                     key={file.id}
-                    className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
+                    type="button"
+                    className={cn(
+                      "border-border flex w-full cursor-pointer items-center gap-3 rounded-lg border p-3 text-left transition-colors",
                       isSelected
-                        ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
-                        : "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600"
-                    }`}
-                    onClick={() => handleToggleDocument(file.id, file.name)}
+                        ? "border-accent bg-accent/5"
+                        : "hover:bg-muted/50",
+                    )}
+                    onClick={() => handleToggleDocument(file.id)}
                   >
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${
-                          isSelected
-                            ? "bg-blue-600 text-white"
-                            : "bg-red-500 text-white"
-                        }`}
-                      >
-                        {isSelected ? (
-                          <Check className="h-5 w-5" />
-                        ) : (
-                          <FileText className="h-5 w-5" />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
-                          {file.name}
-                        </p>
-                        <div className="mt-1 flex items-center space-x-4">
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatFileSize(file.size)}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatDate(file.createdAt)}
-                          </p>
-                        </div>
-                      </div>
+                    <div
+                      className={cn(
+                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-md",
+                        isSelected
+                          ? "bg-accent text-accent-foreground"
+                          : "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {isSelected ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <FileText className="h-4 w-4" />
+                      )}
                     </div>
-                  </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{file.name}</p>
+                      <p className="text-muted-foreground mt-0.5 text-xs">
+                        {formatFileSize(file.size)} · {formatDate(file.createdAt)}
+                      </p>
+                    </div>
+                  </button>
                 );
               })}
             </div>
           )}
         </ScrollArea>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between border-t border-gray-200 p-6 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {selectedIds.length} document{selectedIds.length !== 1 ? "s" : ""}{" "}
-            selected
+        <div className="border-border flex items-center justify-between border-t px-5 py-4">
+          <p className="text-muted-foreground text-xs">
+            {selectedIds.length} selected
           </p>
-          <div className="flex space-x-3">
-            <Button variant="outline" onClick={onClose}>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onClose}>
               Cancel
             </Button>
             <Button
+              size="sm"
               onClick={handleConfirmSelection}
               disabled={selectedIds.length === 0}
             >
-              Add Selected Documents
+              Add documents
             </Button>
           </div>
         </div>

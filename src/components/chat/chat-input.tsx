@@ -42,6 +42,7 @@ export function ChatInput({
       handleSubmit(e);
     }
   };
+
   const handleFileUpload = async (selectedFiles: FileList) => {
     const newFiles = Array.from(selectedFiles).map((file) => ({
       id: crypto.randomUUID(),
@@ -125,68 +126,50 @@ export function ChatInput({
     });
   };
 
-  const handleOpenDocumentSelector = () => {
-    setShowDocumentSelector(true);
-  };
-
-  const handleCloseDocumentSelector = () => {
-    setShowDocumentSelector(false);
-  };
   return (
-    <div className="border-t border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-black">
-      <div className="mx-auto max-w-4xl">
+    <div className="border-border bg-background border-t px-4 py-4">
+      <div className="mx-auto max-w-3xl">
         {uploadedFiles.length > 0 && (
-          <div className="mb-4 flex flex-wrap gap-2">
+          <div className="mb-3 flex flex-wrap gap-2">
             {uploadedFiles.map((file) => (
               <div
                 key={file.id}
-                className="relative flex items-center space-x-3 rounded-xl border border-gray-200 bg-gray-50 p-3 pr-8 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                className="border-border bg-muted/50 relative flex items-center gap-2.5 rounded-lg border py-2 pr-8 pl-2.5"
               >
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-600">
+                <div className="bg-primary text-primary-foreground flex h-7 w-7 shrink-0 items-center justify-center rounded-md">
                   {file.isUploading ? (
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <div className="border-primary-foreground/30 border-t-primary-foreground h-3.5 w-3.5 animate-spin rounded-full border-2" />
                   ) : (
-                    <svg
-                      className="h-5 w-5 text-white"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    <FileText className="h-3.5 w-3.5" />
                   )}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="max-w-[200px] truncate text-sm font-medium text-gray-900 dark:text-white">
+                <div className="min-w-0">
+                  <p className="max-w-[180px] truncate text-xs font-medium">
                     {file.name}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    PDF
-                  </p>
+                  <p className="text-muted-foreground text-[10px]">PDF</p>
                 </div>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute top-1 right-1 h-6 w-6 rounded-full border border-gray-300 bg-white hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600"
+                  className="absolute top-1 right-1 h-5 w-5 rounded-md"
                   onClick={() => removeFile(file.id)}
                 >
-                  <XIcon className="h-3 w-3 text-gray-600 dark:text-gray-300" />
+                  <XIcon className="h-3 w-3" />
                 </Button>
               </div>
             ))}
           </div>
         )}
-        <form onSubmit={handleSubmit} className="relative">
-          <div className="flex items-center space-x-2 rounded-2xl border border-gray-200 bg-gray-50/50 p-2 shadow-sm backdrop-blur-sm transition-all duration-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 hover:border-gray-300 dark:border-gray-600 dark:bg-gray-800/50 dark:focus-within:border-blue-400 dark:focus-within:ring-blue-400/20 dark:hover:border-gray-500">
+
+        <form onSubmit={handleSubmit}>
+          <div className="border-border bg-card focus-within:border-accent/50 focus-within:ring-accent/20 flex items-center gap-1 rounded-xl border p-1.5 shadow-sm focus-within:ring-2">
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="h-9 w-9 flex-shrink-0 cursor-pointer rounded-xl text-gray-600 transition-all duration-200 hover:bg-gray-100 hover:text-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:focus-visible:ring-blue-400/40"
+              className="text-muted-foreground h-8 w-8 shrink-0 rounded-lg"
               disabled={disabled}
               onClick={handleFileSelect}
               title="Upload new document"
@@ -197,9 +180,9 @@ export function ChatInput({
               type="button"
               variant="ghost"
               size="icon"
-              className="h-9 w-9 flex-shrink-0 cursor-pointer rounded-xl text-gray-600 transition-all duration-200 hover:bg-gray-100 hover:text-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:focus-visible:ring-blue-400/40"
+              className="text-muted-foreground h-8 w-8 shrink-0 rounded-lg"
               disabled={disabled}
-              onClick={handleOpenDocumentSelector}
+              onClick={() => setShowDocumentSelector(true)}
               title="Select from uploaded documents"
             >
               <FileText className="h-4 w-4" />
@@ -215,36 +198,33 @@ export function ChatInput({
 
             <Input
               type="text"
-              placeholder="Ask anything..."
+              placeholder="Ask anything about your documents..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={disabled}
-              className="flex-1 border-0 bg-transparent px-2 text-gray-900 placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 dark:px-0 dark:text-gray-100 dark:placeholder:text-gray-400"
+              className="placeholder:text-muted-foreground flex-1 border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0"
             />
 
-            <div className="flex flex-shrink-0 items-center space-x-1">
-              <Button
-                type="submit"
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 cursor-pointer rounded-xl text-gray-600 transition-all duration-200 hover:bg-gray-100 hover:text-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:outline-none disabled:opacity-50 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:focus-visible:ring-blue-400/40"
-                disabled={
-                  disabled ||
-                  !input.trim() ||
-                  uploadedFiles.some((file) => file.isUploading)
-                }
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button
+              type="submit"
+              size="icon"
+              className="h-8 w-8 shrink-0 rounded-lg"
+              disabled={
+                disabled ||
+                !input.trim() ||
+                uploadedFiles.some((file) => file.isUploading)
+              }
+            >
+              <Send className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </form>
 
         {showDocumentSelector && (
           <DocumentSelector
             onSelectDocuments={handleSelectDocuments}
-            onClose={handleCloseDocumentSelector}
+            onClose={() => setShowDocumentSelector(false)}
             selectedDocumentIds={uploadedFiles.map((file) => file.id)}
           />
         )}
