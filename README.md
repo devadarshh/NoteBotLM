@@ -45,6 +45,12 @@ Track your progress and deepen your understanding for a more effective learning 
 - 🐳 **Docker** – Used for containerized development and deployment.
 - ☁️ **Vercel** – Frontend hosting for Next.js app.
 
+## 🏗 Architecture
+
+NoteBot LM uses a RAG pipeline: PDFs are uploaded to Supabase Storage, processed asynchronously by a worker queue, chunked and embedded into a vector database, then retrieved as context for Gemini when you chat.
+
+![System Architecture](assets/architecture.png)
+
 ## Installation & Running Locally
 
 Follow these steps to set up and run NoteBot LM on your local machine:
